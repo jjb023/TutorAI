@@ -91,3 +91,16 @@ pip install -r requirements.txt
 python main.py
 
 
+---
+
+## Time Log
+
+| Date | Time Spent (Hours) | Tasks Completed |
+|------|------------|-----------------|
+| 23.05.25 | 1.5 | Set up github repo and folder structure, created readme |
+
+
+
+
+
+

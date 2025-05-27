@@ -99,6 +99,8 @@ python main.py
 | Date | Time Spent (Hours) | Tasks Completed |
 |------|------------|-----------------|
 | 23.05.25 | 1.5 | Set up github repo and folder structure, created readme |
+| 27.05.25|  |  |
+
 
 
 

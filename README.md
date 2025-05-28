@@ -37,7 +37,7 @@ Many tutors lack a structured system to:
 | VSCode       | Development environment          |
 | OpenAI API   | Worksheet and question generation |
 | GitHub       | Version control                  |
-| Streamlit or Flask (optional) | Frontend/UI     |
+| Streamlit or Flask | Frontend/UI     |
 
 ---
 

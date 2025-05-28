@@ -53,7 +53,12 @@ Many tutors lack a structured system to:
 ### Phase 2: Database + Logic
 - [x] Set up SQLite schema for Students, Sessions, Topics
 - [x] Build Python functions to insert/query session data
-- [ ] Create logic to update topic performance based on results
+- [x] Logic to update topiuc performance
+- [x] Progress tracking with completion percentages
+- [x] Working CLI interface with session entry
+- [x] subtopic search functionality
+- [ ] Add multi tutor authentication tables
+- [ ] Enhanced session logging with tutor attribution
 
 ### Phase 3: Worksheet Generator
 - [ ] Create prompt templates for OpenAI API

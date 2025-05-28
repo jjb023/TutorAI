@@ -60,16 +60,18 @@ Many tutors lack a structured system to:
 - [ ] Add multi tutor authentication tables
 - [ ] Enhanced session logging with tutor attribution
 
-### Phase 3: Worksheet Generator
+### Phase 3: Web interface (multi tutor mvp)
+- [ ] Flask app set up w tutor auth
+- [ ] Dashboard showing all students
+- [ ] Mobile-optimised session entry form
+- [ ] Student management (add/edit vie webapp)
+- [ ] Progress visualisation (Charts or graphs?)
+- [ ] Multi tutor concurrent access
+
+### Phase 4: Worksheet Generator
 - [ ] Create prompt templates for OpenAI API
 - [ ] Build function to generate 5–10 practice questions on weak topics
 - [ ] Store generated worksheets by student and topic
-
-### Phase 4: Dashboard / UI (Optional)
-- [ ] Build command-line or Streamlit interface to:
-  - Add/view students
-  - View strengths/weaknesses
-  - Generate and download worksheet
 
 ### Phase 5: Testing & Polish
 - [ ] Test full loop: log → analyse → generate worksheet

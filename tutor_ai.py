@@ -311,13 +311,39 @@ class TutorAI:
             subtopic_input = input("Subtopic (or Enter to finish): ").strip()
             if not subtopic_input:
                 break
+            
+            # Search for matching subtopics
+            matches = self.db.find_subtopic_by_name(subtopic_input)
+            
+            if not matches:
+                print(f"❌ No subtopic found matching '{subtopic_input}'")
+                continue
+            
+            if len(matches) == 1:
+                # Exact match, use it
+                subtopic_id, subtopic_name, main_topic = matches[0]
+            else:
+                # Multiple matches, let user choose
+                print(f"Found {len(matches)} matches:")
+                for i, (sub_id, sub_name, main_name) in enumerate(matches, 1):
+                    print(f"  {i}. {sub_name} ({main_name})")
                 
+                try:
+                    choice = int(input(f"Which one? (1-{len(matches)}): ")) - 1
+                    subtopic_id, subtopic_name, main_topic = matches[choice]
+                except (ValueError, IndexError):
+                    print("❌ Invalid choice!")
+                    continue
+            
             try:
-                level = int(input(f"Mastery level for '{subtopic_input}' (1-10): "))
+                level = int(input(f"Mastery level for '{subtopic_name}' (1-10): "))
                 if 1 <= level <= 10:
-                    # For demo, just print what would be updated
-                    print(f"✅ Would update: {subtopic_input} → {level}/10")
-                    # In real implementation, you'd search for matching subtopic and update
+                    # Actually update the database
+                    self.db.update_subtopic_progress(
+                        student_id, subtopic_id, level, 
+                        notes="Quick session entry"
+                    )
+                    print(f"✅ Updated: {subtopic_name} → {level}/10")
                 else:
                     print("❌ Level must be 1-10")
             except ValueError:

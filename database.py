@@ -205,6 +205,24 @@ class TutorAIDatabase:
             print(f"✅ Updated subtopic progress: Student {student_id}, Subtopic {subtopic_id}, Level {mastery_level}/10")
         except sqlite3.Error as e:
             print(f"❌ Error updating progress: {e}")
+
+    def find_subtopic_by_name(self, search_term):
+        """Find subtopic by name (case-insensitive, partial match)"""
+        query = """
+        SELECT s.id, s.subtopic_name, mt.topic_name
+        FROM subtopics s
+        JOIN main_topics mt ON s.main_topic_id = mt.id
+        WHERE LOWER(s.subtopic_name) LIKE LOWER(?)
+        ORDER BY s.subtopic_name
+        """
+        
+        try:
+            self.cursor.execute(query, (f"%{search_term}%",))
+            results = self.cursor.fetchall()
+            return results
+        except sqlite3.Error as e:
+            print(f"❌ Error searching subtopics: {e}")
+            return []
     
     def get_student_main_topic_summary(self, student_id):
         """Get completion percentage for each main topic"""

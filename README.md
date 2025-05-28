@@ -49,8 +49,8 @@ Many tutors lack a structured system to:
 - [x] Create README
 
 ### Phase 2: Database + Logic
-- [ ] Set up SQLite schema for Students, Sessions, Topics
-- [ ] Build Python functions to insert/query session data
+- [x] Set up SQLite schema for Students, Sessions, Topics
+- [x] Build Python functions to insert/query session data
 - [ ] Create logic to update topic performance based on results
 
 ### Phase 3: Worksheet Generator

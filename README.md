@@ -96,14 +96,8 @@ Many tutors lack a structured system to:
 ## How to Run the Project
 
 ```bash
-git clone https://github.com/yourusername/tutor-ai.git
-cd tutor-ai
 
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-pip install -r requirements.txt
-python main.py
+python tutor_ai.py
 
 ```
 
@@ -115,6 +109,8 @@ python main.py
 |------|------------|-----------------|
 | 23.05.25 | 1.5 | Set up github repo and folder structure, created readme |
 | 27.05.25 | 3.5 | Created data base with dummy names, created access to data base |
+| 28.05.25 | 2 | Code changes, readme changes, roadmap updates|
+
 
 
 

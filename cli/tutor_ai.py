@@ -1,4 +1,4 @@
-from database import TutorAIDatabase
+from core.database import TutorAIDatabase
 from datetime import datetime
 import os
 

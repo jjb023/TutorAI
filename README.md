@@ -57,8 +57,7 @@ Many tutors lack a structured system to:
 - [x] Progress tracking with completion percentages
 - [x] Working CLI interface with session entry
 - [x] subtopic search functionality
-- [ ] Add multi tutor authentication tables
-- [ ] Enhanced session logging with tutor attribution
+- [x] Add multi tutor authentication tables
 
 ### Phase 3: Web interface (multi tutor mvp)
 - [ ] Flask app set up w tutor auth

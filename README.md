@@ -70,13 +70,18 @@ Many tutors lack a structured system to:
 
 ### Phase 4: Worksheet Generator
 - [ ] Create prompt templates for OpenAI API
-- [ ] Build function to generate 5–10 practice questions on weak topics
+- [ ] Question bank database structure
+- [ ] Smart worksheet generation (Focus on weak areas)
+- [ ] PDF generation for printable worksheets
+- [ ] Worksheet tracking (generate -> print -> completed)
 - [ ] Store generated worksheets by student and topic
 
 ### Phase 5: Testing & Polish
-- [ ] Test full loop: log → analyse → generate worksheet
+- [ ] Test full multitutor workflow
 - [ ] Add sample student data
-- [ ] Write usage instructions in README
+- [ ] User acceptance testing with real tutors
+- [ ] Performance optimisation
+- [ ] Error handling and data validation
 
 ### Phase 6: Future Features (Backlog)
 - [ ] Export printable PDFs of worksheets

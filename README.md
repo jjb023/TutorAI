@@ -43,11 +43,13 @@ Many tutors lack a structured system to:
 
 ## Roadmap – Steps to Complete
 
-### Phase 1: Planning & Setup
+### Phase 1: Planning & Setup COMPLETE
 - [x] Define goal, user (tutors), and data structure
 - [x] Set up GitHub repo and folder structure
 - [x] Create README
-
+- [x] Hierarchical topic structure (main topics -> subtopics)
+- [x] 1-10 mastery scale
+ 
 ### Phase 2: Database + Logic
 - [x] Set up SQLite schema for Students, Sessions, Topics
 - [x] Build Python functions to insert/query session data

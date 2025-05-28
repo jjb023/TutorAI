@@ -83,12 +83,13 @@ Many tutors lack a structured system to:
 - [ ] Performance optimisation
 - [ ] Error handling and data validation
 
-### Phase 6: Future Features (Backlog)
-- [ ] Export printable PDFs of worksheets
-- [ ] Add tagging by year group or curriculum level
-- [ ] Support English/literacy questions
-- [ ] Allow bulk upload of student info
-- [ ] Deploy web version (Flask + SQLite or Firebase)
+### Phase 6: Future Features 
+- [ ] Work sheet scanning + auto grader
+- [ ] Parent progress report?
+- [ ] Additional subjects (English)
+- [ ] Advanced analystics and insights
+- [ ] Mobile app?
+
 
 ---
 

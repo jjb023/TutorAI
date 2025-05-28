@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 class TutorAIDatabase:
-    def __init__(self, db_path="tutor_ai.db"):
+    def __init__(self, db_path="../data/tutor_ai.db"):
         """Initialize database connection and create tables if they don't exist"""
         self.db_path = db_path
         self.connection = sqlite3.connect(db_path)

@@ -291,6 +291,135 @@ class TutorAIDatabase:
         self.connection.close()
         print("📚 Database connection closed")
 
+    def upgrade_for_multitutor(self):
+        """Upgrade database to support multiple tutors - preserves existing data"""
+        print("🔄 Upgrading database for multi-tutor support...")
+        
+        # Add tutors table
+        tutors_table = """
+        CREATE TABLE IF NOT EXISTS tutors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            full_name TEXT NOT NULL,
+            email TEXT,
+            created_date TEXT DEFAULT CURRENT_TIMESTAMP,
+            last_login TEXT,
+            active BOOLEAN DEFAULT 1
+        );
+        """
+        
+        # Add year groups table for better curriculum organization
+        year_groups_table = """
+        CREATE TABLE IF NOT EXISTS year_groups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            year_name TEXT UNIQUE NOT NULL,
+            description TEXT,
+            age_range TEXT,
+            active BOOLEAN DEFAULT 1
+        );
+        """
+        
+        # Execute table creation
+        self.cursor.execute(tutors_table)
+        self.cursor.execute(year_groups_table)
+        
+        # Add tutor_id column to sessions table if it doesn't exist
+        try:
+            self.cursor.execute("ALTER TABLE sessions ADD COLUMN tutor_id INTEGER REFERENCES tutors(id)")
+            print("✅ Added tutor_id column to sessions table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e).lower():
+                print("✅ tutor_id column already exists in sessions table")
+            else:
+                print(f"⚠️ Error adding tutor_id column: {e}")
+        
+        # Add default tutor if none exist
+        self.cursor.execute("SELECT COUNT(*) FROM tutors")
+        if self.cursor.fetchone()[0] == 0:
+            default_tutor = """
+            INSERT INTO tutors (username, password_hash, full_name, email)
+            VALUES ('admin', 'temp_password_hash', 'Default Tutor', 'admin@tutorai.local')
+            """
+            self.cursor.execute(default_tutor)
+            print("✅ Added default tutor account")
+        
+        # Add default year groups if none exist
+        self.cursor.execute("SELECT COUNT(*) FROM year_groups")
+        if self.cursor.fetchone()[0] == 0:
+            default_year_groups = [
+                ("Year 3", "Ages 7-8", "7-8 years"),
+                ("Year 4", "Ages 8-9", "8-9 years"),
+                ("Year 5", "Ages 9-10", "9-10 years"),
+                ("Year 6", "Ages 10-11", "10-11 years")
+            ]
+            
+            for year_name, description, age_range in default_year_groups:
+                self.cursor.execute(
+                    "INSERT INTO year_groups (year_name, description, age_range) VALUES (?, ?, ?)",
+                    (year_name, description, age_range)
+                )
+            print("✅ Added default year groups")
+        
+        self.connection.commit()
+        print("🎉 Database upgraded for multi-tutor support!")
+        print("💡 All existing data preserved")
+
+    def add_tutor(self, username, password_hash, full_name, email=None):
+        """Add a new tutor to the database"""
+        query = """
+        INSERT INTO tutors (username, password_hash, full_name, email)
+        VALUES (?, ?, ?, ?)
+        """
+        
+        try:
+            self.cursor.execute(query, (username, password_hash, full_name, email))
+            self.connection.commit()
+            tutor_id = self.cursor.lastrowid
+            print(f"✅ Added tutor: {full_name} (Username: {username})")
+            return tutor_id
+        except sqlite3.IntegrityError:
+            print(f"❌ Username '{username}' already exists!")
+            return None
+        except sqlite3.Error as e:
+            print(f"❌ Error adding tutor: {e}")
+            return None
+
+    def get_all_tutors(self):
+        """Get all active tutors"""
+        query = "SELECT id, username, full_name, email, last_login FROM tutors WHERE active = 1 ORDER BY full_name"
+        try:
+            self.cursor.execute(query)
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"❌ Error getting tutors: {e}")
+            return []
+
+    def create_session_with_tutor(self, student_id, tutor_id, duration_minutes=None, topics_covered=None, notes=None, homework=None):
+        """Create a session record with tutor attribution"""
+        query = """
+        INSERT INTO sessions (student_id, tutor_id, duration_minutes, main_topics_covered, tutor_notes, homework_set)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """
+        
+        try:
+            self.cursor.execute(query, (student_id, tutor_id, duration_minutes, topics_covered, notes, homework))
+            self.connection.commit()
+            
+            # Update student's last session date
+            self.cursor.execute(
+                "UPDATE students SET last_session_date = CURRENT_TIMESTAMP WHERE id = ?",
+                (student_id,)
+            )
+            self.connection.commit()
+            
+            session_id = self.cursor.lastrowid
+            print(f"✅ Session created: Student {student_id}, Tutor {tutor_id}")
+            return session_id
+        except sqlite3.Error as e:
+            print(f"❌ Error creating session: {e}")
+            return None
+
 
 # Demo usage and testing
 if __name__ == "__main__":

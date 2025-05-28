@@ -30,14 +30,14 @@ Many tutors lack a structured system to:
 
 ## Tech Stack
 
-| Tool         | Purpose                          |
-|--------------|----------------------------------|
-| Python       | Core logic and AI integration    |
-| SQLite       | Lightweight local database       |
-| VSCode       | Development environment          |
-| OpenAI API   | Worksheet and question generation |
-| GitHub       | Version control                  |
-| Streamlit or Flask | Frontend/UI     |
+| Tool         | Purpose                          | Status |
+|--------------|----------------------------------|--------|
+| Python       | Core logic and AI integration    | Active |
+| SQLite       | Lightweight local database       | Active |
+| VSCode       | Development environment          | Active |
+| OpenAI API   | Worksheet and question generation | Planned |
+| GitHub       | Version control                  | Active |
+| Flask        | Frontend/UI                      | Planned |
 
 ---
 

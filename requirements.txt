@@ -1,0 +1,8 @@
+# Core dependencies (current)
+# No external dependencies yet
+
+# Future dependencies (Phase 3+)
+# Flask==2.3.3
+# Flask-Login==0.6.3
+# Werkzeug==2.3.7
+# python-dotenv==1.0.0

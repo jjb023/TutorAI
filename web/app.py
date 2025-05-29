@@ -1,0 +1,439 @@
+# web/app.py
+from flask import Flask, render_template, request, redirect, url_for
+import sys
+import os
+
+# Add the parent directory to the path so we can import our database
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database import TutorAIDatabase
+
+# Create Flask app
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-change-this-later'  # Needed for sessions
+
+# Database connection function (creates new connection for each request)
+def get_db():
+    """Get a new database connection for each request"""
+    return TutorAIDatabase()
+
+@app.route('/')
+def home():
+    """Home page - shows basic info"""
+    db = get_db()
+    students = db.get_all_students()
+    tutors = db.get_all_tutors()
+    db.close()  # Close connection when done
+    
+    return f"""
+    <h1>🎯 Tutor AI - Web Interface</h1>
+    <p><strong>Database Status:</strong> ✅ Connected</p>
+    <p><strong>Students:</strong> {len(students)} in database</p>
+    <p><strong>Tutors:</strong> {len(tutors)} registered</p>
+    
+    <hr>
+    <h3>Quick Links:</h3>
+    <ul>
+        <li><a href="/students">📚 View All Students</a></li>
+        <li><a href="/add-student">➕ Add New Student</a></li>
+        <li><a href="/tutors">👥 View All Tutors</a></li>
+    </ul>
+    
+    <hr>
+    <p><em>🎉 Your Flask app is working! Using your existing database.</em></p>
+    """
+
+@app.route('/students')
+def students_list():
+    """Show all students"""
+    db = get_db()
+    students = db.get_all_students()
+    
+    html = "<h1>📚 All Students</h1>"
+    
+    if not students:
+        html += "<p>No students in database yet.</p>"
+        html += '<p><a href="/add-student">➕ Add your first student</a></p>'
+    else:
+        html += f"<p>Total students: {len(students)}</p>"
+        html += "<div style='display: grid; gap: 20px; margin: 20px 0;'>"
+        
+        for student in students:
+            id, name, age, year, school, contact, notes, created, last_session = student
+            
+            html += f"""
+            <div style='border: 1px solid #ccc; padding: 15px; border-radius: 8px;'>
+                <h3>🎓 {name} (ID: {id})</h3>
+                <p><strong>Age:</strong> {age} | <strong>Year:</strong> {year}</p>
+                {f'<p><strong>School:</strong> {school}</p>' if school else ''}
+                {f'<p><strong>Last Session:</strong> {last_session}</p>' if last_session else '<p><em>No sessions yet</em></p>'}
+                <p>
+                    <a href="/student/{id}">📊 View Progress</a> | 
+                    <a href="/session/{id}">⚡ Quick Session Entry</a>
+                </p>
+            </div>
+            """
+        
+        html += "</div>"
+    
+    html += '<p><a href="/">🏠 Back to Home</a></p>'
+    db.close()
+    return html
+
+@app.route('/tutors')
+def tutors_list():
+    """Show all tutors"""
+    db = get_db()
+    tutors = db.get_all_tutors()
+    
+    html = "<h1>👥 All Tutors</h1>"
+    
+    if tutors:
+        html += f"<p>Total tutors: {len(tutors)}</p>"
+        for tutor in tutors:
+            id, username, full_name, email, last_login = tutor
+            html += f"""
+            <div style='border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px;'>
+                <h3>👤 {full_name}</h3>
+                <p><strong>Username:</strong> {username}</p>
+                {f'<p><strong>Email:</strong> {email}</p>' if email else ''}
+                {f'<p><strong>Last Login:</strong> {last_login}</p>' if last_login else '<p><em>Never logged in</em></p>'}
+            </div>
+            """
+    else:
+        html += "<p>No tutors found.</p>"
+    
+    html += '<p><a href="/">🏠 Back to Home</a></p>'
+    db.close()
+    return html
+
+@app.route('/student/<int:student_id>')
+def student_detail(student_id):
+    """Show detailed progress for a specific student"""
+    db = get_db()
+    
+    # Get student info
+    students = db.get_all_students()
+    student = None
+    for s in students:
+        if s[0] == student_id:
+            student = s
+            break
+    
+    if not student:
+        db.close()
+        return f"<h1>❌ Student not found</h1><p><a href='/students'>Back to students</a></p>"
+    
+    name = student[1]
+    
+    # Get progress summary
+    summary = db.get_student_main_topic_summary(student_id)
+    
+    html = f"<h1>📊 Progress Report: {name}</h1>"
+    
+    if not any(row[3] > 0 for row in summary):  # Check if any subtopics assessed
+        html += "<p>No progress recorded yet.</p>"
+        html += f'<p><a href="/session/{student_id}">⚡ Start first assessment</a></p>'
+    else:
+        html += "<div style='margin: 20px 0;'>"
+        for topic_name, color, total_subs, assessed_subs, avg_mastery, completion_pct in summary:
+            if assessed_subs > 0:
+                # Color code based on average mastery
+                if avg_mastery >= 7:
+                    status = "🟢"
+                elif avg_mastery >= 4:
+                    status = "🟡"
+                else:
+                    status = "🔴"
+                
+                html += f"""
+                <div style='border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px;'>
+                    <h3>{status} {topic_name}</h3>
+                    <p><strong>Completion:</strong> {completion_pct}%</p>
+                    <p><strong>Average Mastery:</strong> {avg_mastery}/10</p>
+                    <p><strong>Assessed:</strong> {assessed_subs}/{total_subs} subtopics</p>
+                </div>
+                """
+        html += "</div>"
+    
+    html += f"""
+    <hr>
+    <p>
+        <a href="/session/{student_id}">⚡ Quick Session Entry</a> | 
+        <a href="/students">📚 All Students</a> | 
+        <a href="/">🏠 Home</a>
+    </p>
+    """
+    
+    db.close()
+    return html
+
+@app.route('/session/<int:student_id>')
+def session_entry_form(student_id):
+    """Show session entry form for a student"""
+    db = get_db()
+    
+    # Get student info
+    students = db.get_all_students()
+    student = None
+    for s in students:
+        if s[0] == student_id:
+            student = s
+            break
+    
+    if not student:
+        db.close()
+        return f"<h1>❌ Student not found</h1><p><a href='/students'>Back to students</a></p>"
+    
+    name = student[1]
+    
+    # Get available subtopics
+    query = """
+    SELECT s.id, s.subtopic_name, mt.topic_name, COALESCE(sp.mastery_level, 0)
+    FROM subtopics s
+    JOIN main_topics mt ON s.main_topic_id = mt.id
+    LEFT JOIN subtopic_progress sp ON s.id = sp.subtopic_id AND sp.student_id = ?
+    ORDER BY mt.topic_name, s.difficulty_order
+    """
+    
+    db.cursor.execute(query, (student_id,))
+    subtopics = db.cursor.fetchall()
+    
+    html = f"""
+    <h1>⚡ Quick Session Entry: {name}</h1>
+    <form method="POST" action="/save-session/{student_id}">
+        <div style="margin: 20px 0;">
+    """
+    
+    current_topic = ""
+    for sub_id, sub_name, topic_name, current_level in subtopics:
+        if topic_name != current_topic:
+            if current_topic:  # Close previous topic section
+                html += "</div>"
+            html += f"<h3>📖 {topic_name}</h3><div style='margin-left: 20px;'>"
+            current_topic = topic_name
+        
+        html += f"""
+        <div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <label style="display: block; margin-bottom: 5px;">
+                <strong>{sub_name}</strong> (Currently: {current_level}/10)
+            </label>
+            <input type="range" name="subtopic_{sub_id}" min="0" max="10" value="{current_level}" 
+                   oninput="this.nextElementSibling.innerHTML = this.value + '/10'"
+                   style="width: 200px;">
+            <span>{current_level}/10</span>
+        </div>
+        """
+    
+    html += """
+        </div>
+        </div>
+        <button type="submit" style="background: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px;">
+            💾 Save Session Progress
+        </button>
+    </form>
+    
+    <hr>
+    <p><a href="/students">📚 All Students</a> | <a href="/">🏠 Home</a></p>
+    
+    <script>
+    // Make sliders more interactive
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+        slider.addEventListener('input', function() {
+            this.nextElementSibling.innerHTML = this.value + '/10';
+        });
+    });
+    </script>
+    """
+    
+    db.close()
+    return html
+
+@app.route('/save-session/<int:student_id>', methods=['POST'])
+def save_session(student_id):
+    """Save session progress data"""
+    db = get_db()
+    
+    # Process form data
+    updates_made = []
+    
+    for field_name, value in request.form.items():
+        if field_name.startswith('subtopic_'):
+            subtopic_id = int(field_name.replace('subtopic_', ''))
+            mastery_level = int(value)
+            
+            if mastery_level > 0:  # Only update if level is set
+                db.update_subtopic_progress(
+                    student_id, subtopic_id, mastery_level,
+                    notes="Web session entry"
+                )
+                updates_made.append(f"Updated subtopic {subtopic_id} to level {mastery_level}")
+    
+    # Get student name for success message
+    students = db.get_all_students()
+    student_name = "Student"
+    for s in students:
+        if s[0] == student_id:
+            student_name = s[1]
+            break
+    
+    html = f"""
+    <h1>✅ Session Saved Successfully!</h1>
+    <p><strong>Student:</strong> {student_name}</p>
+    <p><strong>Updates:</strong> {len(updates_made)} subtopics updated</p>
+    
+    <div style="margin: 20px 0;">
+        <p><a href="/student/{student_id}">📊 View {student_name}'s Progress</a></p>
+        <p><a href="/session/{student_id}">⚡ Enter Another Session</a></p>
+        <p><a href="/students">📚 All Students</a></p>
+        <p><a href="/">🏠 Home</a></p>
+    </div>
+    """
+    
+    db.close()
+    return html
+
+@app.route('/add-student')
+def add_student_form():
+    """Show form to add a new student"""
+    html = """
+    <h1>➕ Add New Student</h1>
+    <form method="POST" action="/save-student">
+        <div style="margin: 20px 0; max-width: 500px;">
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Student Name:</strong></label>
+                <input type="text" name="name" required style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Age:</strong></label>
+                <input type="number" name="age" min="4" max="18" required style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Year Group:</strong></label>
+                <select name="year_group" required style="width: 100%; padding: 8px; font-size: 16px;">
+                    <option value="">Select year group...</option>
+                    <option value="Year 3">Year 3</option>
+                    <option value="Year 4">Year 4</option>
+                    <option value="Year 5">Year 5</option>
+                    <option value="Year 6">Year 6</option>
+                </select>
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Target School (optional):</strong></label>
+                <input type="text" name="target_school" style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Parent Contact (optional):</strong></label>
+                <input type="text" name="parent_contact" style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Notes (optional):</strong></label>
+                <textarea name="notes" rows="3" style="width: 100%; padding: 8px; font-size: 16px;"></textarea>
+            </div>
+            
+            <button type="submit" style="background: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px; margin-top: 10px;">
+                ➕ Add Student
+            </button>
+        </div>
+    </form>
+    
+    <hr>
+    <p><a href="/students">📚 All Students</a> | <a href="/">🏠 Home</a></p>
+    """
+    return html
+
+@app.route('/save-student', methods=['POST'])
+def save_student():
+    """Save new student to database"""
+    db = get_db()
+    
+    # Get form data
+    name = request.form.get('name', '').strip()
+    age = request.form.get('age')
+    year_group = request.form.get('year_group', '').strip()
+    target_school = request.form.get('target_school', '').strip() or None
+    parent_contact = request.form.get('parent_contact', '').strip() or None
+    notes = request.form.get('notes', '').strip() or None
+    
+    # Validate required fields
+    if not name:
+        db.close()
+        return "<h1>❌ Error</h1><p>Student name is required!</p><p><a href='/add-student'>Try again</a></p>"
+    
+    if not age or not age.isdigit():
+        db.close()
+        return "<h1>❌ Error</h1><p>Valid age is required!</p><p><a href='/add-student'>Try again</a></p>"
+    
+    if not year_group:
+        db.close()
+        return "<h1>❌ Error</h1><p>Year group is required!</p><p><a href='/add-student'>Try again</a></p>"
+    
+    # Add student to database
+    student_id = db.add_student(name, int(age), year_group, target_school, parent_contact, notes)
+    
+    if student_id:
+        html = f"""
+        <h1>✅ Student Added Successfully!</h1>
+        <div style="border: 1px solid #4CAF50; padding: 20px; margin: 20px 0; border-radius: 8px; background: #f0f8f0;">
+            <h3>🎓 {name}</h3>
+            <p><strong>Age:</strong> {age}</p>
+            <p><strong>Year Group:</strong> {year_group}</p>
+            {f'<p><strong>Target School:</strong> {target_school}</p>' if target_school else ''}
+            {f'<p><strong>Parent Contact:</strong> {parent_contact}</p>' if parent_contact else ''}
+            {f'<p><strong>Notes:</strong> {notes}</p>' if notes else ''}
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <p><a href="/student/{student_id}">📊 View {name}'s Progress</a></p>
+            <p><a href="/session/{student_id}">⚡ Start First Assessment</a></p>
+            <p><a href="/add-student">➕ Add Another Student</a></p>
+            <p><a href="/students">📚 All Students</a></p>
+            <p><a href="/">🏠 Home</a></p>
+        </div>
+        """
+    else:
+        html = """
+        <h1>❌ Error Adding Student</h1>
+        <p>There was a problem adding the student to the database.</p>
+        <p><a href="/add-student">Try again</a></p>
+        """
+    
+    db.close()
+    return html
+    """Show all tutors"""
+    db = get_db()
+    tutors = db.get_all_tutors()
+    
+    html = "<h1>👥 All Tutors</h1>"
+    
+    if tutors:
+        html += f"<p>Total tutors: {len(tutors)}</p>"
+        for tutor in tutors:
+            id, username, full_name, email, last_login = tutor
+            html += f"""
+            <div style='border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px;'>
+                <h3>👤 {full_name}</h3>
+                <p><strong>Username:</strong> {username}</p>
+                {f'<p><strong>Email:</strong> {email}</p>' if email else ''}
+                {f'<p><strong>Last Login:</strong> {last_login}</p>' if last_login else '<p><em>Never logged in</em></p>'}
+            </div>
+            """
+    else:
+        html += "<p>No tutors found.</p>"
+    
+    html += '<p><a href="/">🏠 Back to Home</a></p>'
+    db.close()
+    return html
+
+if __name__ == '__main__':
+    print("🚀 Starting Tutor AI Flask App...")
+    print("📱 Access from other devices on your network:")
+    print("   Find your IP address and use: http://YOUR_IP:5001")
+    print("🌐 Local access: http://localhost:5000")
+    print("⚠️  Press Ctrl+C to stop the server")
+    
+    app.run(debug=True, host='0.0.0.0', port=5001)

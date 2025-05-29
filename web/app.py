@@ -7,9 +7,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database import TutorAIDatabase
 
-# Create Flask app
-app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-later'  # Needed for sessions
+# Create Flask app with static folder specified
+app = Flask(__name__, static_folder='static', static_url_path='/static')
+app.secret_key = 'your-secret-key-change-this-later'
 
 # Database connection function (creates new connection for each request)
 def get_db():
@@ -22,24 +22,53 @@ def home():
     db = get_db()
     students = db.get_all_students()
     tutors = db.get_all_tutors()
-    db.close()  # Close connection when done
+    db.close()
     
     return f"""
-    <h1>🎯 Tutor AI - Web Interface</h1>
-    <p><strong>Database Status:</strong> ✅ Connected</p>
-    <p><strong>Students:</strong> {len(students)} in database</p>
-    <p><strong>Tutors:</strong> {len(tutors)} registered</p>
-    
-    <hr>
-    <h3>Quick Links:</h3>
-    <ul>
-        <li><a href="/students">📚 View All Students</a></li>
-        <li><a href="/add-student">➕ Add New Student</a></li>
-        <li><a href="/tutors">👥 View All Tutors</a></li>
-    </ul>
-    
-    <hr>
-    <p><em>🎉 Your Flask app is working! Using your existing database.</em></p>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tutor AI - Dashboard</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    </head>
+    <body>
+        <div class="container">
+            <h1>🎯 Tutor AI Dashboard</h1>
+            
+            <div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
+                <div class="stats-card">
+                    <div class="stats-icon">📚</div>
+                    <div class="stats-number">{len(students)}</div>
+                    <div class="stats-label">Students</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-icon">👥</div>
+                    <div class="stats-number">{len(tutors)}</div>
+                    <div class="stats-label">Tutors</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-icon">✅</div>
+                    <div class="stats-number">MVP</div>
+                    <div class="stats-label">Status</div>
+                </div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/students" class="btn">📚 View All Students</a>
+                <a href="/add-student" class="btn btn-success">➕ Add New Student</a>
+                <a href="/tutors" class="btn btn-warning">👥 View All Tutors</a>
+            </div>
+            
+            <div class="welcome-message">
+                <p>✨ Your professional tutor management system is ready!</p>
+                <p style="font-size: 0.9em; opacity: 0.8;">Track progress • Generate insights • Manage sessions</p>
+            </div>
+        </div>
+    </body>
+    </html>
     """
 
 @app.route('/students')

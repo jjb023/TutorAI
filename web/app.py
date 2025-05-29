@@ -413,9 +413,20 @@ def session_entry_form(student_id):
     subtopics = db.cursor.fetchall()
     
     html = f"""
-    <h1>⚡ Quick Session Entry: {name}</h1>
-    <form method="POST" action="/save-session/{student_id}">
-        <div style="margin: 20px 0;">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Session Entry: {name} - Tutor AI</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>⚡ Session Entry: {name}</h1>
+            
+            <div class="session-container">
+                <form method="POST" action="/save-session/{student_id}">
     """
     
     current_topic = ""
@@ -423,51 +434,85 @@ def session_entry_form(student_id):
         if topic_name != current_topic:
             if current_topic:  # Close previous topic section
                 html += "</div>"
-            html += f"<h3>📖 {topic_name}</h3><div style='margin-left: 20px;'>"
+            html += f"""
+                <div class="topic-section">
+                    <h3>📖 {topic_name}</h3>
+            """
             current_topic = topic_name
         
+        reset_button = f'<button type="button" onclick="resetSubtopic(this)" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">Reset</button>' if current_level > 0 else ''
+        
         html += f"""
-        <div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-            <label style="display: block; margin-bottom: 5px;">
-                <strong>{sub_name}</strong> (Currently: {current_level}/10)
-            </label>
-            <input type="range" name="subtopic_{sub_id}" min="0" max="10" value="{current_level}" 
-                   oninput="this.nextElementSibling.innerHTML = this.value === '0' ? 'Not assessed' : this.value + '/10'"
-                   style="width: 200px;">
-            <span>{'Not assessed' if current_level == 0 else str(current_level) + '/10'}</span>
-            {f'<button type="button" onclick="resetSubtopic(this)" style="margin-left: 10px; padding: 5px 10px; background: #ff6b6b; color: white; border: none; border-radius: 3px; font-size: 12px;">Reset</button>' if current_level > 0 else ''}
+        <div class="subtopic-item">
+            <div class="subtopic-label">{sub_name}</div>
+            <div class="slider-container">
+                <input type="range" name="subtopic_{sub_id}" min="0" max="10" value="{current_level}" 
+                       class="slider" id="slider_{sub_id}"
+                       oninput="updateScore(this, 'score_{sub_id}')">
+                <div class="score-display" id="score_{sub_id}">
+                    {'Not assessed' if current_level == 0 else str(current_level) + '/10'}
+                </div>
+                {reset_button}
+            </div>
         </div>
         """
     
     html += """
+                </div>
+                
+                <div style="text-align: center; margin: 40px 0;">
+                    <button type="submit" class="btn btn-success" style="font-size: 1.2em; padding: 15px 40px;">
+                        💾 Save Session Progress
+                    </button>
+                </div>
+            </form>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/students">📚 All Students</a>
+                <a href="/">🏠 Dashboard</a>
+            </div>
         </div>
-        </div>
-        <button type="submit" style="background: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px;">
-            💾 Save Session Progress
-        </button>
-    </form>
-    
-    <hr>
-    <p><a href="/students">📚 All Students</a> | <a href="/">🏠 Home</a></p>
-    
-    <script>
-    // Make sliders more interactive
-    document.querySelectorAll('input[type="range"]').forEach(slider => {
-        slider.addEventListener('input', function() {
-            const value = this.value;
-            this.nextElementSibling.innerHTML = value === '0' ? 'Not assessed' : value + '/10';
+        
+        <script>
+        function updateScore(slider, scoreId) {
+            const value = slider.value;
+            const scoreDisplay = document.getElementById(scoreId);
+            scoreDisplay.textContent = value === '0' ? 'Not assessed' : value + '/10';
+            
+            // Update color based on score
+            if (value >= 8) {
+                scoreDisplay.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
+            } else if (value >= 5) {
+                scoreDisplay.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+            } else if (value > 0) {
+                scoreDisplay.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+            } else {
+                scoreDisplay.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+            }
+        }
+        
+        function resetSubtopic(button) {
+            const subtopicItem = button.closest('.subtopic-item');
+            const slider = subtopicItem.querySelector('.slider');
+            const scoreDisplay = subtopicItem.querySelector('.score-display');
+            
+            slider.value = 0;
+            scoreDisplay.textContent = 'Not assessed';
+            scoreDisplay.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+            button.style.display = 'none';
+        }
+        
+        // Initialize colors on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.slider').forEach(slider => {
+                const scoreId = 'score_' + slider.name.replace('subtopic_', '');
+                updateScore(slider, scoreId);
+            });
         });
-    });
-    
-    // Reset subtopic function
-    function resetSubtopic(button) {
-        const slider = button.parentElement.querySelector('input[type="range"]');
-        const span = button.parentElement.querySelector('span');
-        slider.value = 0;
-        span.innerHTML = 'Not assessed';
-        button.style.display = 'none';
-    }
-    </script>
+        </script>
+    </body>
+    </html>
     """
     
     db.close()

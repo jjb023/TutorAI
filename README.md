@@ -137,7 +137,7 @@ python tutor_ai.py
 | 23.05.25 | 1.5 | Set up github repo and folder structure, created readme |
 | 27.05.25 | 3.5 | Created data base with dummy names, created access to data base |
 | 28.05.25 | 4 | Code changes, readme changes, roadmap updates|
-| 29.05.25 | 5 | Local flask website successfully launched |
+| 29.05.25 | 6 | Local flask website successfully launched |
 
 
 

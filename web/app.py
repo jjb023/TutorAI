@@ -68,7 +68,9 @@ def students_list():
                 {f'<p><strong>Last Session:</strong> {last_session}</p>' if last_session else '<p><em>No sessions yet</em></p>'}
                 <p>
                     <a href="/student/{id}">📊 View Progress</a> | 
-                    <a href="/session/{id}">⚡ Quick Session Entry</a>
+                    <a href="/session/{id}">⚡ Quick Session Entry</a> |
+                    <a href="/edit-student/{id}">✏️ Edit</a> |
+                    <a href="/delete-student/{id}" onclick="return confirm('Are you sure you want to delete {name}?')" style="color: #ff6b6b;">🗑️ Delete</a>
                 </p>
             </div>
             """
@@ -76,6 +78,160 @@ def students_list():
         html += "</div>"
     
     html += '<p><a href="/">🏠 Back to Home</a></p>'
+    db.close()
+    return html
+
+@app.route('/edit-student/<int:student_id>')
+def edit_student_form(student_id):
+    """Show form to edit student details"""
+    db = get_db()
+    students = db.get_all_students()
+    student = None
+    for s in students:
+        if s[0] == student_id:
+            student = s
+            break
+    
+    if not student:
+        db.close()
+        return f"<h1>❌ Student not found</h1><p><a href='/students'>Back to students</a></p>"
+    
+    id, name, age, year, school, contact, notes, created, last_session = student
+    
+    html = f"""
+    <h1>✏️ Edit Student: {name}</h1>
+    <form method="POST" action="/update-student/{student_id}">
+        <div style="margin: 20px 0; max-width: 500px;">
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Student Name:</strong></label>
+                <input type="text" name="name" value="{name}" required style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Age:</strong></label>
+                <input type="number" name="age" value="{age}" min="4" max="18" required style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Year Group:</strong></label>
+                <select name="year_group" required style="width: 100%; padding: 8px; font-size: 16px;">
+                    <option value="Year 3" {"selected" if year == "Year 3" else ""}>Year 3</option>
+                    <option value="Year 4" {"selected" if year == "Year 4" else ""}>Year 4</option>
+                    <option value="Year 5" {"selected" if year == "Year 5" else ""}>Year 5</option>
+                    <option value="Year 6" {"selected" if year == "Year 6" else ""}>Year 6</option>
+                </select>
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Target School:</strong></label>
+                <input type="text" name="target_school" value="{school or ''}" style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Parent Contact:</strong></label>
+                <input type="text" name="parent_contact" value="{contact or ''}" style="width: 100%; padding: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin-bottom: 5px;"><strong>Notes:</strong></label>
+                <textarea name="notes" rows="3" style="width: 100%; padding: 8px; font-size: 16px;">{notes or ''}</textarea>
+            </div>
+            
+            <button type="submit" style="background: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px; margin-top: 10px;">
+                💾 Update Student
+            </button>
+        </div>
+    </form>
+    
+    <hr>
+    <p><a href="/student/{student_id}">📊 View Progress</a> | <a href="/students">📚 All Students</a> | <a href="/">🏠 Home</a></p>
+    """
+    
+    db.close()
+    return html
+
+@app.route('/update-student/<int:student_id>', methods=['POST'])
+def update_student(student_id):
+    """Update student information"""
+    db = get_db()
+    
+    # Get form data
+    name = request.form.get('name', '').strip()
+    age = request.form.get('age')
+    year_group = request.form.get('year_group', '').strip()
+    target_school = request.form.get('target_school', '').strip() or None
+    parent_contact = request.form.get('parent_contact', '').strip() or None
+    notes = request.form.get('notes', '').strip() or None
+    
+    # Update in database
+    query = """
+    UPDATE students 
+    SET name = ?, age = ?, year_group = ?, target_school = ?, parent_contact = ?, notes = ?
+    WHERE id = ?
+    """
+    
+    try:
+        db.cursor.execute(query, (name, int(age), year_group, target_school, parent_contact, notes, student_id))
+        db.connection.commit()
+        
+        html = f"""
+        <h1>✅ Student Updated Successfully!</h1>
+        <p><strong>Student:</strong> {name} has been updated.</p>
+        
+        <div style="margin: 20px 0;">
+            <p><a href="/student/{student_id}">📊 View {name}'s Progress</a></p>
+            <p><a href="/students">📚 All Students</a></p>
+            <p><a href="/">🏠 Home</a></p>
+        </div>
+        """
+    except Exception as e:
+        html = f"""
+        <h1>❌ Error Updating Student</h1>
+        <p>Error: {e}</p>
+        <p><a href="/edit-student/{student_id}">Try again</a></p>
+        """
+    
+    db.close()
+    return html
+
+@app.route('/delete-student/<int:student_id>')
+def delete_student(student_id):
+    """Delete student and all their progress"""
+    db = get_db()
+    
+    # Get student name first
+    students = db.get_all_students()
+    student_name = "Student"
+    for s in students:
+        if s[0] == student_id:
+            student_name = s[1]
+            break
+    
+    try:
+        # Delete student progress first (foreign key constraint)
+        db.cursor.execute("DELETE FROM subtopic_progress WHERE student_id = ?", (student_id,))
+        # Delete sessions
+        db.cursor.execute("DELETE FROM sessions WHERE student_id = ?", (student_id,))
+        # Delete student
+        db.cursor.execute("DELETE FROM students WHERE id = ?", (student_id,))
+        db.connection.commit()
+        
+        html = f"""
+        <h1>✅ Student Deleted</h1>
+        <p><strong>{student_name}</strong> and all their progress data has been removed.</p>
+        
+        <div style="margin: 20px 0;">
+            <p><a href="/students">📚 All Students</a></p>
+            <p><a href="/">🏠 Home</a></p>
+        </div>
+        """
+    except Exception as e:
+        html = f"""
+        <h1>❌ Error Deleting Student</h1>
+        <p>Error: {e}</p>
+        <p><a href="/students">Back to students</a></p>
+        """
+    
     db.close()
     return html
 
@@ -218,9 +374,10 @@ def session_entry_form(student_id):
                 <strong>{sub_name}</strong> (Currently: {current_level}/10)
             </label>
             <input type="range" name="subtopic_{sub_id}" min="0" max="10" value="{current_level}" 
-                   oninput="this.nextElementSibling.innerHTML = this.value + '/10'"
+                   oninput="this.nextElementSibling.innerHTML = this.value === '0' ? 'Not assessed' : this.value + '/10'"
                    style="width: 200px;">
-            <span>{current_level}/10</span>
+            <span>{'Not assessed' if current_level == 0 else str(current_level) + '/10'}</span>
+            {f'<button type="button" onclick="resetSubtopic(this)" style="margin-left: 10px; padding: 5px 10px; background: #ff6b6b; color: white; border: none; border-radius: 3px; font-size: 12px;">Reset</button>' if current_level > 0 else ''}
         </div>
         """
     
@@ -239,9 +396,19 @@ def session_entry_form(student_id):
     // Make sliders more interactive
     document.querySelectorAll('input[type="range"]').forEach(slider => {
         slider.addEventListener('input', function() {
-            this.nextElementSibling.innerHTML = this.value + '/10';
+            const value = this.value;
+            this.nextElementSibling.innerHTML = value === '0' ? 'Not assessed' : value + '/10';
         });
     });
+    
+    // Reset subtopic function
+    function resetSubtopic(button) {
+        const slider = button.parentElement.querySelector('input[type="range"]');
+        const span = button.parentElement.querySelector('span');
+        slider.value = 0;
+        span.innerHTML = 'Not assessed';
+        button.style.display = 'none';
+    }
     </script>
     """
     
@@ -404,36 +571,14 @@ def save_student():
     
     db.close()
     return html
-    """Show all tutors"""
-    db = get_db()
-    tutors = db.get_all_tutors()
-    
-    html = "<h1>👥 All Tutors</h1>"
-    
-    if tutors:
-        html += f"<p>Total tutors: {len(tutors)}</p>"
-        for tutor in tutors:
-            id, username, full_name, email, last_login = tutor
-            html += f"""
-            <div style='border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px;'>
-                <h3>👤 {full_name}</h3>
-                <p><strong>Username:</strong> {username}</p>
-                {f'<p><strong>Email:</strong> {email}</p>' if email else ''}
-                {f'<p><strong>Last Login:</strong> {last_login}</p>' if last_login else '<p><em>Never logged in</em></p>'}
-            </div>
-            """
-    else:
-        html += "<p>No tutors found.</p>"
-    
-    html += '<p><a href="/">🏠 Back to Home</a></p>'
-    db.close()
-    return html
+
+
 
 if __name__ == '__main__':
     print("🚀 Starting Tutor AI Flask App...")
     print("📱 Access from other devices on your network:")
     print("   Find your IP address and use: http://YOUR_IP:5001")
-    print("🌐 Local access: http://localhost:5000")
+    print("🌐 Local access: http://localhost:5001")
     print("⚠️  Press Ctrl+C to stop the server")
     
     app.run(debug=True, host='0.0.0.0', port=5001)

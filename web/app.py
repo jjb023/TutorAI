@@ -14,7 +14,7 @@ app.secret_key = 'your-secret-key-change-this-later'
 # Database connection function (creates new connection for each request)
 def get_db():
     """Get a new database connection for each request"""
-    return TutorAIDatabase()
+    return TutorAIDatabase("../data/tutor_ai.db")
 
 @app.route('/')
 def home():

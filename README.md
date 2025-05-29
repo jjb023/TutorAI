@@ -100,7 +100,9 @@ Many tutors lack a structured system to:
 ## Current Project Structure
 
 tutor_ai_project/
+
 ├── web/
+
 │   ├── app.py              # Flask web application
 │   ├── static/
 │   │   └── style.css       # Modern responsive CSS with theme system

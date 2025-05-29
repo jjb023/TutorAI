@@ -101,19 +101,20 @@ Many tutors lack a structured system to:
 
 tutor_ai_project/
 
-├── web/
-
-│   ├── app.py              # Flask web application
-│   ├── static/
-│   │   └── style.css       # Modern responsive CSS with theme system
-│   └── templates/          # Ready for future template files
-├── database.py             # SQLite database class with multi-tutor support
-├── tutor_ai.py            # CLI interface (still functional)
-├── data/
-│   └── tutor_ai.db        # SQLite database file
-├── .gitignore             # Git ignore rules
-├── README.md              # This file
-└── requirements.txt       # Python dependencies
+.
+├── __pycache__
+│   └── database.cpython-311.pyc
+├── data
+│   └── tutor_ai.db
+├── database.py
+├── README.md
+├── test_upgrade.py
+├── tutor_ai.py
+└── web
+    ├── app.py
+    ├── static
+    │   └── style.css
+    └── templates
 
 Current dependencies: Flask
 

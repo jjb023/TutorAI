@@ -95,6 +95,25 @@ Many tutors lack a structured system to:
 - [ ] Native mobile app development
 - [ ] Integration with popular tutoring management systems
 
+---
+
+## Current Project Structure
+
+tutor_ai_project/
+├── web/
+│   ├── app.py              # Flask web application
+│   ├── static/
+│   │   └── style.css       # Modern responsive CSS with theme system
+│   └── templates/          # Ready for future template files
+├── database.py             # SQLite database class with multi-tutor support
+├── tutor_ai.py            # CLI interface (still functional)
+├── data/
+│   └── tutor_ai.db        # SQLite database file
+├── .gitignore             # Git ignore rules
+├── README.md              # This file
+└── requirements.txt       # Python dependencies
+
+Current dependencies: Flask
 
 ---
 

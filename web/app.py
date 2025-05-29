@@ -77,36 +77,65 @@ def students_list():
     db = get_db()
     students = db.get_all_students()
     
-    html = "<h1>📚 All Students</h1>"
+    html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>All Students - Tutor AI</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>📚 All Students</h1>
+    """
     
     if not students:
-        html += "<p>No students in database yet.</p>"
-        html += '<p><a href="/add-student">➕ Add your first student</a></p>'
+        html += """
+            <div class="welcome-message">
+                <p>No students in database yet.</p>
+                <a href="/add-student" class="btn btn-success">➕ Add your first student</a>
+            </div>
+        """
     else:
-        html += f"<p>Total students: {len(students)}</p>"
-        html += "<div style='display: grid; gap: 20px; margin: 20px 0;'>"
+        html += f'<p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">Managing <strong>{len(students)}</strong> students</p>'
+        html += '<div class="student-grid">'
         
         for student in students:
             id, name, age, year, school, contact, notes, created, last_session = student
             
             html += f"""
-            <div style='border: 1px solid #ccc; padding: 15px; border-radius: 8px;'>
-                <h3>🎓 {name} (ID: {id})</h3>
-                <p><strong>Age:</strong> {age} | <strong>Year:</strong> {year}</p>
-                {f'<p><strong>School:</strong> {school}</p>' if school else ''}
-                {f'<p><strong>Last Session:</strong> {last_session}</p>' if last_session else '<p><em>No sessions yet</em></p>'}
-                <p>
-                    <a href="/student/{id}">📊 View Progress</a> | 
-                    <a href="/session/{id}">⚡ Quick Session Entry</a> |
-                    <a href="/edit-student/{id}">✏️ Edit</a> |
-                    <a href="/delete-student/{id}" onclick="return confirm('Are you sure you want to delete {name}?')" style="color: #ff6b6b;">🗑️ Delete</a>
-                </p>
+            <div class="student-card">
+                <h3>🎓 {name}</h3>
+                <div style="margin: 15px 0;">
+                    <p><strong>Age:</strong> {age} | <strong>Year:</strong> {year}</p>
+                    {f'<p><strong>School:</strong> {school}</p>' if school else ''}
+                    {f'<p style="color: #27ae60;"><strong>Last Session:</strong> {last_session}</p>' if last_session else '<p style="color: #95a5a6;"><em>No sessions yet</em></p>'}
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
+                    <a href="/student/{id}" class="btn" style="flex: 1; min-width: 120px; text-align: center;">📊 Progress</a>
+                    <a href="/session/{id}" class="btn btn-success" style="flex: 1; min-width: 120px; text-align: center;">⚡ Session</a>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    <a href="/edit-student/{id}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
+                    <a href="/delete-student/{id}" onclick="return confirm('Are you sure you want to delete {name}?')" class="btn btn-danger" style="flex: 1; text-align: center;">🗑️ Delete</a>
+                </div>
             </div>
             """
         
-        html += "</div>"
+        html += '</div>'
     
-    html += '<p><a href="/">🏠 Back to Home</a></p>'
+    html += """
+            <div class="nav-links">
+                <a href="/add-student" class="btn btn-success">➕ Add New Student</a>
+                <a href="/">🏠 Back to Dashboard</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
     db.close()
     return html
 

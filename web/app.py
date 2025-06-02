@@ -12,6 +12,126 @@ from database import TutorAIDatabase
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = 'your-secret-key-change-this-later'
 
+# Setup Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access the tutor system.'
+
+# Simple User class for Flask-Login
+class Tutor(UserMixin):
+    def __init__(self, id, username, full_name, email):
+        self.id = id
+        self.username = username
+        self.full_name = full_name
+        self.email = email
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user for Flask-Login"""
+    db = TutorAIDatabase("../data/tutor_ai.db")
+    try:
+        db.cursor.execute("SELECT id, username, full_name, email FROM tutors WHERE id = ? AND active = 1", (user_id,))
+        tutor_data = db.cursor.fetchone()
+        if tutor_data:
+            return Tutor(tutor_data[0], tutor_data[1], tutor_data[2], tutor_data[3])
+    finally:
+        db.close()
+    return None
+
+def verify_tutor_login(username, password):
+    """Simple password verification - in production, use proper password hashing"""
+    db = get_db()
+    try:
+        db.cursor.execute("SELECT id, username, full_name, email FROM tutors WHERE username = ? AND active = 1", (username,))
+        tutor_data = db.cursor.fetchone()
+        
+        if tutor_data:
+            # For demo: accept specific passwords
+            demo_passwords = {
+                'admin': 'admin123',
+                'tutor1': 'password',
+                'tutor2': 'password'
+            }
+            
+            if password == demo_passwords.get(username, 'password'):
+                # Update last login
+                db.cursor.execute("UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?", (tutor_data[0],))
+                db.connection.commit()
+                return Tutor(tutor_data[0], tutor_data[1], tutor_data[2], tutor_data[3])
+    finally:
+        db.close()
+    return None
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        
+        if not username or not password:
+            flash('Please enter both username and password.', 'error')
+        else:
+            tutor = verify_tutor_login(username, password)
+            if tutor:
+                login_user(tutor)
+                flash(f'Welcome back, {tutor.full_name}!', 'success')
+                next_page = request.args.get('next')
+                return redirect(next_page or url_for('home'))
+            else:
+                flash('Invalid username or password.', 'error')
+    
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tutor Login - Tutor AI</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div class="container" style="max-width: 500px; margin-top: 100px;">
+            <h1>🎯 Tutor AI Login</h1>
+            
+            <div class="form-container">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.1em;">
+                        🔑 Login
+                    </button>
+                </form>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4>Demo Accounts:</h4>
+                    <p><strong>Username:</strong> admin | <strong>Password:</strong> admin123</p>
+                    <p><strong>Username:</strong> tutor1 | <strong>Password:</strong> password</p>
+                    <p><strong>Username:</strong> tutor2 | <strong>Password:</strong> password</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Logout current user"""
+    logout_user()
+    flash('You have been logged out successfully.', 'info')
+    return redirect(url_for('login'))
+
 # Database connection function (creates new connection for each request)
 def get_db():
     """Get a new database connection for each request"""

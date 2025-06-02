@@ -26,6 +26,17 @@ class Tutor(UserMixin):
         self.full_name = full_name
         self.email = email
 
+def admin_required(f):
+    """Decorator to require admin access"""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.username != 'admin':
+            flash('Admin access required for this action.', 'error')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function        
+
 @login_manager.user_loader
 def load_user(user_id):
     """Load user for Flask-Login"""
@@ -65,6 +76,301 @@ def verify_tutor_login(username, password):
     finally:
         db.close()
     return None
+
+@app.route('/manage-tutors')
+@login_required
+@admin_required
+def manage_tutors():
+    """Admin page to manage all tutors"""
+    db = get_db()
+    tutors = db.get_all_tutors()
+    db.close()
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Manage Tutors - Tutor AI</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1>👥 Manage Tutors</h1>
+                <div style="text-align: right;">
+                    <p style="margin: 0; color: #666;">Admin: <strong>{current_user.full_name}</strong></p>
+                    <a href="/logout" style="color: #999; font-size: 0.9em;">Logout</a>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <a href="/add-tutor" class="btn btn-success">➕ Add New Tutor</a>
+                <a href="/" class="btn">🏠 Back to Dashboard</a>
+            </div>
+            
+            <div class="student-grid">
+                {"".join([f'''
+                <div class="student-card">
+                    <h3>👤 {tutor[2]}</h3>
+                    <div style="margin: 15px 0;">
+                        <p><strong>Username:</strong> {tutor[1]}</p>
+                        <p><strong>Email:</strong> {tutor[3] or 'Not provided'}</p>
+                        <p><strong>Last Login:</strong> {tutor[4] or 'Never'}</p>
+                        <p><strong>Status:</strong> {'🟢 Active' if tutor[1] != 'admin' else '🔑 Admin'}</p>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
+                        <a href="/edit-tutor/{tutor[0]}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
+                        {f'<a href="/delete-tutor/{tutor[0]}" onclick="return confirm(\'Delete {tutor[2]}?\')" class="btn btn-danger" style="flex: 1; text-align: center;">🗑️ Delete</a>' if tutor[1] != 'admin' else '<span style="flex: 1; text-align: center; color: #999;">Protected</span>'}
+                    </div>
+                </div>
+                ''' for tutor in tutors])}
+            </div>
+            
+            <div class="nav-links">
+                <a href="/add-tutor" class="btn btn-success">➕ Add New Tutor</a>
+                <a href="/">🏠 Dashboard</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.route('/add-tutor')
+@login_required
+@admin_required
+def add_tutor_form():
+    """Show form to add a new tutor"""
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Add New Tutor - Tutor AI</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1>➕ Add New Tutor</h1>
+                <div style="text-align: right;">
+                    <p style="margin: 0; color: #666;">Admin: <strong>{current_user.full_name}</strong></p>
+                </div>
+            </div>
+            
+            <div class="form-container">
+                <form method="POST" action="/save-tutor">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" class="form-control" required 
+                               pattern="[a-zA-Z0-9_]{{3,20}}" title="3-20 characters, letters, numbers, underscore only">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" class="form-control" required minlength="6">
+                        <small style="color: #666;">Minimum 6 characters</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="full_name">Full Name:</label>
+                        <input type="text" id="full_name" name="full_name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email (optional):</label>
+                        <input type="email" id="email" name="email" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.1em;">
+                        ➕ Add Tutor
+                    </button>
+                </form>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/manage-tutors">👥 Back to Tutors</a>
+                <a href="/">🏠 Dashboard</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.route('/save-tutor', methods=['POST'])
+@login_required
+@admin_required
+def save_tutor():
+    """Save new tutor to database"""
+    db = get_db()
+    
+    # Get form data
+    username = request.form.get('username', '').strip().lower()
+    password = request.form.get('password', '')
+    full_name = request.form.get('full_name', '').strip()
+    email = request.form.get('email', '').strip() or None
+    
+    # Validate
+    if not username or not password or not full_name:
+        db.close()
+        flash('Username, password, and full name are required!', 'error')
+        return redirect(url_for('add_tutor_form'))
+    
+    if len(password) < 6:
+        db.close()
+        flash('Password must be at least 6 characters!', 'error')
+        return redirect(url_for('add_tutor_form'))
+    
+    # Check if username exists
+    db.cursor.execute("SELECT username FROM tutors WHERE username = ?", (username,))
+    if db.cursor.fetchone():
+        db.close()
+        flash(f'Username "{username}" already exists!', 'error')
+        return redirect(url_for('add_tutor_form'))
+    
+    # Add tutor (using simple password for demo - in production use hashing)
+    tutor_id = db.add_tutor(username, 'password_hash', full_name, email)
+    db.close()
+    
+    if tutor_id:
+        flash(f'Tutor {full_name} added successfully!', 'success')
+        return redirect(url_for('manage_tutors'))
+    else:
+        flash('Error adding tutor. Please try again.', 'error')
+        return redirect(url_for('add_tutor_form'))
+
+@app.route('/edit-tutor/<int:tutor_id>')
+@login_required
+@admin_required
+def edit_tutor_form(tutor_id):
+    """Show form to edit tutor details"""
+    db = get_db()
+    db.cursor.execute("SELECT id, username, full_name, email FROM tutors WHERE id = ?", (tutor_id,))
+    tutor = db.cursor.fetchone()
+    db.close()
+    
+    if not tutor:
+        flash('Tutor not found!', 'error')
+        return redirect(url_for('manage_tutors'))
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Edit Tutor - Tutor AI</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>✏️ Edit Tutor: {tutor[2]}</h1>
+            
+            <div class="form-container">
+                <form method="POST" action="/update-tutor/{tutor_id}">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" class="form-control" 
+                               value="{tutor[1]}" required pattern="[a-zA-Z0-9_]{{3,20}}"
+                               {'readonly' if tutor[1] == 'admin' else ''}>
+                        {f'<small style="color: #999;">Admin username cannot be changed</small>' if tutor[1] == 'admin' else ''}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="full_name">Full Name:</label>
+                        <input type="text" id="full_name" name="full_name" class="form-control" 
+                               value="{tutor[2]}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" class="form-control" 
+                               value="{tutor[3] or ''}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new_password">New Password (leave blank to keep current):</label>
+                        <input type="password" id="new_password" name="new_password" class="form-control" minlength="6">
+                        <small style="color: #666;">Leave blank to keep current password</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px;">
+                        💾 Update Tutor
+                    </button>
+                </form>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/manage-tutors">👥 Back to Tutors</a>
+                <a href="/">🏠 Dashboard</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.route('/update-tutor/<int:tutor_id>', methods=['POST'])
+@login_required
+@admin_required
+def update_tutor(tutor_id):
+    """Update tutor information"""
+    db = get_db()
+    
+    # Get form data
+    username = request.form.get('username', '').strip().lower()
+    full_name = request.form.get('full_name', '').strip()
+    email = request.form.get('email', '').strip() or None
+    new_password = request.form.get('new_password', '').strip()
+    
+    try:
+        if new_password:
+            # Update with new password
+            db.cursor.execute(
+                "UPDATE tutors SET username = ?, full_name = ?, email = ?, password_hash = ? WHERE id = ?",
+                (username, full_name, email, 'password_hash', tutor_id)
+            )
+        else:
+            # Update without changing password
+            db.cursor.execute(
+                "UPDATE tutors SET username = ?, full_name = ?, email = ? WHERE id = ?",
+                (username, full_name, email, tutor_id)
+            )
+        
+        db.connection.commit()
+        flash(f'Tutor {full_name} updated successfully!', 'success')
+    except Exception as e:
+        flash(f'Error updating tutor: {e}', 'error')
+    
+    db.close()
+    return redirect(url_for('manage_tutors'))
+
+@app.route('/delete-tutor/<int:tutor_id>')
+@login_required
+@admin_required
+def delete_tutor(tutor_id):
+    """Delete a tutor (except admin)"""
+    db = get_db()
+    
+    # Check if it's the admin account
+    db.cursor.execute("SELECT username, full_name FROM tutors WHERE id = ?", (tutor_id,))
+    tutor = db.cursor.fetchone()
+    
+    if not tutor:
+        flash('Tutor not found!', 'error')
+    elif tutor[0] == 'admin':
+        flash('Cannot delete admin account!', 'error')
+    else:
+        try:
+            db.cursor.execute("DELETE FROM tutors WHERE id = ?", (tutor_id,))
+            db.connection.commit()
+            flash(f'Tutor {tutor[1]} deleted successfully!', 'success')
+        except Exception as e:
+            flash(f'Error deleting tutor: {e}', 'error')
+    
+    db.close()
+    return redirect(url_for('manage_tutors'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

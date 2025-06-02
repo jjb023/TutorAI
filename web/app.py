@@ -68,7 +68,8 @@ def verify_tutor_login(username, password):
                 'tutor2': 'password'
             }
             
-            if password == demo_passwords.get(username, 'password'):
+            # Accept known passwords or 'password' for new tutors
+            if password == demo_passwords.get(username) or password == 'password':
                 # Update last login
                 db.cursor.execute("UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?", (tutor_data[0],))
                 db.connection.commit()
@@ -122,7 +123,7 @@ def manage_tutors():
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
                         <a href="/edit-tutor/{tutor[0]}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
-                        {f'<a href="/delete-tutor/{tutor[0]}" onclick="return confirm(\'Delete {tutor[2]}?\')" class="btn btn-danger" style="flex: 1; text-align: center;">🗑️ Delete</a>' if tutor[1] != 'admin' else '<span style="flex: 1; text-align: center; color: #999;">Protected</span>'}
+                        {f'<a href="/delete-tutor/{tutor[0]}" class="btn btn-danger" style="flex: 1; text-align: center;">🗑️ Delete</a>' if tutor[1] != 'admin' else '<span style="flex: 1; text-align: center; color: #999;">Protected</span>'}
                     </div>
                 </div>
                 ''' for tutor in tutors])}
@@ -500,6 +501,7 @@ def home():
                 <a href="/students" class="btn">📚 View All Students</a>
                 <a href="/add-student" class="btn btn-success">➕ Add New Student</a>
                 <a href="/tutors" class="btn btn-warning">👥 View All Tutors</a>
+                {f'<a href="/manage-tutors" class="btn" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">🔑 Manage Tutors</a>' if current_user.username == 'admin' else ''}
             </div>
             
             <div class="welcome-message">

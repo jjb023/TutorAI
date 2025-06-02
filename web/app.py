@@ -138,6 +138,7 @@ def get_db():
     return TutorAIDatabase("../data/tutor_ai.db")
 
 @app.route('/')
+@login_required
 def home():
     """Home page - shows basic info"""
     db = get_db()
@@ -193,6 +194,7 @@ def home():
     """
 
 @app.route('/students')
+@login_required
 def students_list():
     """Show all students"""
     db = get_db()
@@ -261,6 +263,7 @@ def students_list():
     return html
 
 @app.route('/edit-student/<int:student_id>')
+@login_required
 def edit_student_form(student_id):
     """Show form to edit student details"""
     db = get_db()
@@ -330,6 +333,7 @@ def edit_student_form(student_id):
     return html
 
 @app.route('/update-student/<int:student_id>', methods=['POST'])
+@login_required
 def update_student(student_id):
     """Update student information"""
     db = get_db()
@@ -374,6 +378,7 @@ def update_student(student_id):
     return html
 
 @app.route('/delete-student/<int:student_id>')
+@login_required
 def delete_student(student_id):
     """Delete student and all their progress"""
     db = get_db()
@@ -415,6 +420,7 @@ def delete_student(student_id):
     return html
 
 @app.route('/tutors')
+@login_required
 def tutors_list():
     """Show all tutors"""
     db = get_db()
@@ -442,6 +448,7 @@ def tutors_list():
     return html
 
 @app.route('/student/<int:student_id>')
+@login_required
 def student_detail(student_id):
     """Show detailed progress for a specific student"""
     db = get_db()
@@ -503,6 +510,7 @@ def student_detail(student_id):
     return html
 
 @app.route('/session/<int:student_id>')
+@login_required
 def session_entry_form(student_id):
     """Show session entry form for a student"""
     db = get_db()
@@ -640,6 +648,7 @@ def session_entry_form(student_id):
     return html
 
 @app.route('/save-session/<int:student_id>', methods=['POST'])
+@login_required
 def save_session(student_id):
     """Save session progress data"""
     db = get_db()
@@ -684,6 +693,7 @@ def save_session(student_id):
     return html
 
 @app.route('/add-student')
+@login_required
 def add_student_form():
     """Show form to add a new student"""
     html = """
@@ -738,6 +748,7 @@ def add_student_form():
     return html
 
 @app.route('/save-student', methods=['POST'])
+@login_required
 def save_student():
     """Save new student to database"""
     db = get_db()

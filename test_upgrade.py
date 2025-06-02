@@ -1,13 +1,16 @@
 from database import TutorAIDatabase
 
-# Create database instance
-db = TutorAIDatabase()
+db = TutorAIDatabase("data/tutor_ai.db")
 
-# Run the upgrade
-db.upgrade_for_multitutor()
+# Add demo tutors
+demo_tutors = [
+    ("admin", "password_hash", "Sarah Wilson", "sarah@tutorai.demo"),
+    ("tutor1", "password_hash", "Mike Johnson", "mike@tutorai.demo"),
+    ("tutor2", "password_hash", "Emma Davis", "emma@tutorai.demo")
+]
 
-# Check it worked
-tutors = db.get_all_tutors()
-print("Tutors:", tutors)
+for username, password, name, email in demo_tutors:
+    db.add_tutor(username, password, name, email)
 
 db.close()
+print("Demo tutors added!")

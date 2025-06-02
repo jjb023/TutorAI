@@ -68,7 +68,8 @@ Many tutors lack a structured system to:
 - [x] Multi-tutor concurrent access capability
 - [x] Modern, responsive design with customizable color themes
 - [x] Cross-device compatibility (desktop, tablet, mobile)
-- [ ] Optional: Simple tutor login system (5% remaining)
+- [x] Optional: Simple tutor login system (5% remaining)
+- [ ] Reorganise folder template
 
 ### Phase 4: Worksheet Generator
 - [ ] Question bank database structure

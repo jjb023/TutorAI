@@ -29,7 +29,10 @@ class Tutor(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     """Load user for Flask-Login"""
-    db = TutorAIDatabase("../data/tutor_ai.db")
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+    db = TutorAIDatabase(db_path)
     try:
         db.cursor.execute("SELECT id, username, full_name, email FROM tutors WHERE id = ? AND active = 1", (user_id,))
         tutor_data = db.cursor.fetchone()
@@ -134,8 +137,11 @@ def logout():
 
 # Database connection function (creates new connection for each request)
 def get_db():
-    """Get a new database connection for each request"""
-    return TutorAIDatabase("../data/tutor_ai.db")
+    import os
+    # Get the absolute path to the database
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+    return TutorAIDatabase(db_path)
 
 @app.route('/')
 @login_required
@@ -158,7 +164,13 @@ def home():
     </head>
     <body>
         <div class="container">
-            <h1>🎯 Tutor AI Dashboard</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1>🎯 Tutor AI Dashboard</h1>
+                <div style="text-align: right;">
+                    <p style="margin: 0; color: #666;">Welcome, <strong>{current_user.full_name}</strong></p>
+                    <a href="/logout" style="color: #999; font-size: 0.9em;">Logout</a>
+                </div>
+            </div>
             
             <div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
                 <div class="stats-card">
@@ -807,7 +819,21 @@ def save_student():
     db.close()
     return html
 
+@app.route('/debug')
+def debug_info():
+    """Debug route to check login system"""
+    from flask_login import current_user
+    return f"""
+    <h1>Debug Info</h1>
+    <p>Current user authenticated: {current_user.is_authenticated}</p>
+    <p>Login manager configured: {login_manager is not None}</p>
+    <p>Go to <a href="/test-protected">/test-protected</a> to test login requirement</p>
+    """
 
+@app.route('/test-protected')
+@login_required
+def test_protected():
+    return "<h1>Login is working!</h1><p>You are logged in!</p>"
 
 if __name__ == '__main__':
     print("🚀 Starting Tutor AI Flask App...")

@@ -35,25 +35,23 @@ def create_session():
     """Create a new session."""
     student_id = request.form.get('student_id', type=int)
     tutor_id = request.form.get('tutor_id', type=int)
-    duration = request.form.get('duration', type=int)
-    progress_score = request.form.get('progress_score', type=int)
-    notes = request.form.get('notes', '').strip()
+    duration_minutes = request.form.get('duration_minutes', type=int)
+    topics_covered = request.form.get('topics_covered', '').strip() or None
+    notes = request.form.get('notes', '').strip() or None
+    
+    print(f"Session data: student_id={student_id}, tutor_id={tutor_id}, duration={duration_minutes}")
     
     # Validation
-    if not all([student_id, tutor_id, duration, progress_score]):
-        flash('All fields except notes are required!', 'error')
+    if not student_id or not tutor_id:
+        flash('Student and tutor are required!', 'error')
         return redirect(url_for('session.entry'))
     
-    if not (1 <= progress_score <= 10):
-        flash('Progress score must be between 1 and 10!', 'error')
-        return redirect(url_for('session.entry'))
-    
-    if duration <= 0:
+    if duration_minutes and duration_minutes <= 0:
         flash('Duration must be positive!', 'error')
         return redirect(url_for('session.entry'))
     
     try:
-        SessionService.create_session(student_id, tutor_id, duration, progress_score, notes or None)
+        SessionService.create_session(student_id, tutor_id, duration_minutes, topics_covered, notes)
         
         # Get student name for success message
         student = StudentService.get_student(student_id)
@@ -62,5 +60,8 @@ def create_session():
         flash(f'Session recorded for {student_name}!', 'success')
         return redirect(url_for('student.student_detail', student_id=student_id))
     except Exception as e:
+        print(f"Error creating session: {e}")
+        import traceback
+        traceback.print_exc()
         flash(f'Error creating session: {e}', 'error')
         return redirect(url_for('session.entry'))

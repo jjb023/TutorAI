@@ -3,25 +3,40 @@ from datetime import datetime
 
 class SessionService:
     @staticmethod
-    def create_session(student_id, tutor_id, duration, progress_score, notes=None):
-        """Create a new session."""
+    def create_session(student_id, tutor_id, duration_minutes=None, topics_covered=None, notes=None):
+        """Create a new session using your existing database structure."""
         with get_db_connection() as conn:
+            # First, let's see what columns exist in the sessions table
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(sessions)")
+            columns = [column[1] for column in cursor.fetchall()]
+            print(f"Sessions table columns: {columns}")
+            
+            # Use your existing database structure
             conn.execute('''
-                INSERT INTO sessions (student_id, tutor_id, date, duration, progress_score, notes)
+                INSERT INTO sessions (student_id, tutor_id, session_date, duration_minutes, main_topics_covered, tutor_notes)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (student_id, tutor_id, datetime.now(), duration, progress_score, notes))
+            ''', (student_id, tutor_id, datetime.now().isoformat(), duration_minutes, topics_covered, notes))
             conn.commit()
+            
+            # Update student's last session date
+            conn.execute(
+                "UPDATE students SET last_session_date = CURRENT_TIMESTAMP WHERE id = ?",
+                (student_id,)
+            )
+            conn.commit()
+            print(f"✅ Session created: Student {student_id}, Tutor {tutor_id}")
     
     @staticmethod
     def get_all_sessions():
         """Get all sessions with student and tutor names."""
         with get_db_connection() as conn:
             return conn.execute('''
-                SELECT s.*, st.name as student_name, t.name as tutor_name
+                SELECT s.*, st.name as student_name, t.full_name as tutor_name
                 FROM sessions s
                 JOIN students st ON s.student_id = st.id
                 JOIN tutors t ON s.tutor_id = t.id
-                ORDER BY s.date DESC
+                ORDER BY s.session_date DESC
             ''').fetchall()
     
     @staticmethod
@@ -29,11 +44,11 @@ class SessionService:
         """Get all sessions for a specific student."""
         with get_db_connection() as conn:
             return conn.execute('''
-                SELECT s.*, t.name as tutor_name
+                SELECT s.*, t.full_name as tutor_name
                 FROM sessions s
                 JOIN tutors t ON s.tutor_id = t.id
                 WHERE s.student_id = ?
-                ORDER BY s.date DESC
+                ORDER BY s.session_date DESC
             ''', (student_id,)).fetchall()
     
     @staticmethod
@@ -43,14 +58,11 @@ class SessionService:
             total_sessions = conn.execute('SELECT COUNT(*) FROM sessions').fetchone()[0]
             
             if total_sessions > 0:
-                avg_score = conn.execute('SELECT AVG(progress_score) FROM sessions').fetchone()[0]
-                avg_duration = conn.execute('SELECT AVG(duration) FROM sessions').fetchone()[0]
+                avg_duration = conn.execute('SELECT AVG(duration_minutes) FROM sessions WHERE duration_minutes IS NOT NULL').fetchone()[0]
             else:
-                avg_score = 0
                 avg_duration = 0
             
             return {
                 'total_sessions': total_sessions,
-                'avg_score': round(avg_score, 1) if avg_score else 0,
                 'avg_duration': round(avg_duration, 1) if avg_duration else 0
             }

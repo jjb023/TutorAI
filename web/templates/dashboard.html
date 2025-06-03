@@ -1,91 +1,55 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - AI Tutor System{% endblock %}
+{% block title %}Dashboard - Tutor AI{% endblock %}
 
 {% block content %}
-<h1>Dashboard</h1>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title">Total Students</h5>
-                <h2 class="text-primary">{{ stats.total_students }}</h2>
-            </div>
-        </div>
+<div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
+    <div class="stats-card">
+        <div class="stats-icon">📚</div>
+        <div class="stats-number">{{ stats.total_students }}</div>
+        <div class="stats-label">Students</div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title">Total Tutors</h5>
-                <h2 class="text-success">{{ stats.total_tutors }}</h2>
-            </div>
-        </div>
+    <div class="stats-card">
+        <div class="stats-icon">👥</div>
+        <div class="stats-number">{{ stats.total_tutors }}</div>
+        <div class="stats-label">Tutors</div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title">Total Sessions</h5>
-                <h2 class="text-info">{{ stats.total_sessions }}</h2>
-            </div>
-        </div>
+    <div class="stats-card">
+        <div class="stats-icon">⚡</div>
+        <div class="stats-number">{{ stats.total_sessions }}</div>
+        <div class="stats-label">Sessions</div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5>Progress Trends</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="progressChart" width="400" height="200"></canvas>
-            </div>
+<div class="nav-links">
+    <a href="{{ url_for('student.list_students') }}" class="btn">📚 View All Students</a>
+    <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add New Student</a>
+    <a href="{{ url_for('tutor.list_tutors') }}" class="btn btn-warning">👥 View All Tutors</a>
+    {% if current_user.username == 'admin' %}
+    <a href="{{ url_for('tutor.add_tutor') }}" class="btn" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">🔑 Manage Tutors</a>
+    {% endif %}
+    <a href="{{ url_for('session.entry') }}" class="btn btn-warning">⚡ Session Entry</a>
+</div>
+
+{% if recent_sessions %}
+<div style="margin-top: 40px;">
+    <h3>Recent Sessions</h3>
+    <div class="student-grid">
+        {% for session in recent_sessions[:3] %}
+        <div class="student-card">
+            <h5>{{ session.student_name }}</h5>
+            <p><strong>Date:</strong> {{ session.session_date }}</p>
+            {% if session.duration_minutes %}
+            <p><strong>Duration:</strong> {{ session.duration_minutes }} minutes</p>
+            {% endif %}
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5>Recent Sessions</h5>
-            </div>
-            <div class="card-body">
-                {% for session in recent_sessions %}
-                <div class="mb-2">
-                    <strong>{{ session.student_name }}</strong> with {{ session.tutor_name }}<br>
-                    <small class="text-muted">{{ session.date }} - Score: {{ session.progress_score }}/10</small>
-                </div>
-                <hr>
-                {% endfor %}
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
-{% endblock %}
+{% endif %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    const progressChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [{% for data in progress_data %}'{{ data.date }}'{% if not loop.last %},{% endif %}{% endfor %}],
-            datasets: [{
-                label: 'Progress Score',
-                data: [{% for data in progress_data %}{{ data.progress_score }}{% if not loop.last %},{% endif %}{% endfor %}],
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 10
-                }
-            }
-        }
-    });
-</script>
+<div class="welcome-message">
+    <p>✨ Your professional tutor management system is ready!</p>
+    <p style="font-size: 0.9em; opacity: 0.8;">Track progress • Generate insights • Manage sessions</p>
+</div>
 {% endblock %}

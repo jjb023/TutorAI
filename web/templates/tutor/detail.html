@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tutor.full_name }} - Tutor Details{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>👤 Tutor: {{ tutor.full_name }}</h1>
+    {% if current_user.username == 'admin' %}
+    <div>
+        <a href="{{ url_for('tutor.edit_tutor', tutor_id=tutor.id) }}" class="btn btn-warning">✏️ Edit Tutor</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="student-grid">
+    <div class="student-card">
+        <h3>Tutor Information</h3>
+        <p><strong>Name:</strong> {{ tutor.full_name }}</p>
+        <p><strong>Username:</strong> {{ tutor.username }}</p>
+        {% if tutor.email %}
+        <p><strong>Email:</strong> {{ tutor.email }}</p>
+        {% endif %}
+        {% if tutor.last_login %}
+        <p><strong>Last Login:</strong> {{ tutor.last_login }}</p>
+        {% else %}
+        <p><strong>Last Login:</strong> <em>Never</em></p>
+        {% endif %}
+        <p><strong>Status:</strong> 
+            {% if tutor.username == 'admin' %}
+                🔑 Admin
+            {% else %}
+                🟢 Active Tutor
+            {% endif %}
+        </p>
+        <p><strong>Created:</strong> {{ tutor.created_date }}</p>
+    </div>
+    
+    <div class="student-card">
+        <h3>Session Statistics</h3>
+        <p><strong>Total Sessions:</strong> {{ sessions|length }}</p>
+        {% if sessions %}
+        <p><strong>Last Session:</strong> {{ sessions[0].session_date }}</p>
+        {% else %}
+        <p style="color: #999;"><em>No sessions recorded yet</em></p>
+        {% endif %}
+    </div>
+</div>
+
+{% if sessions %}
+<div style="margin: 30px 0;">
+    <h3>📝 Recent Sessions</h3>
+    {% for session in sessions[:5] %}
+    <div class="student-card" style="margin: 10px 0;">
+        <p><strong>Student:</strong> {{ session.student_name }}</p>
+        <p><strong>Date:</strong> {{ session.session_date }}</p>
+        {% if session.duration_minutes %}
+        <p><strong>Duration:</strong> {{ session.duration_minutes }} minutes</p>
+        {% endif %}
+        {% if session.main_topics_covered %}
+        <p><strong>Topics:</strong> {{ session.main_topics_covered }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="welcome-message">
+    <h3>No sessions recorded yet</h3>
+    <p>Sessions conducted by this tutor will appear here.</p>
+</div>
+{% endif %}
+
+<div class="nav-links">
+    <a href="{{ url_for('tutor.list_tutors') }}">👥 Back to Tutors</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+</div>
+{% endblock %}

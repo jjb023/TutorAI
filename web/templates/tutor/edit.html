@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{% if tutor %}Edit Tutor{% else %}Add Tutor{% endif %} - Tutor AI{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{% if tutor %}✏️ Edit Tutor: {{ tutor.full_name }}{% else %}➕ Add New Tutor{% endif %}</h1>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Username <span style="color: red;">*</span></label>
+            <input type="text" id="username" name="username" class="form-control" 
+                   value="{{ tutor.username if tutor else '' }}" required 
+                   pattern="[a-zA-Z0-9_]{3,20}" title="3-20 characters, letters, numbers, underscore only"
+                   {% if tutor and tutor.username == 'admin' %}readonly{% endif %}>
+            {% if tutor and tutor.username == 'admin' %}
+            <small style="color: #999;">Admin username cannot be changed</small>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="full_name">Full Name <span style="color: red;">*</span></label>
+            <input type="text" id="full_name" name="full_name" class="form-control" 
+                   value="{{ tutor.full_name if tutor else '' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" 
+                   value="{{ tutor.email if tutor and tutor.email else '' }}">
+        </div>
+        
+        {% if not tutor %}
+        <div class="form-group">
+            <label for="password">Password <span style="color: red;">*</span></label>
+            <input type="password" id="password" name="password" class="form-control" required minlength="6">
+            <small style="color: #666;">Minimum 6 characters</small>
+        </div>
+        {% else %}
+        <div class="form-group">
+            <label for="new_password">New Password (leave blank to keep current)</label>
+            <input type="password" id="new_password" name="new_password" class="form-control" minlength="6">
+            <small style="color: #666;">Leave blank to keep current password</small>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_for('tutor.list_tutors') }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-success">
+                {% if tutor %}💾 Update Tutor{% else %}➕ Add Tutor{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="nav-links">
+    <a href="{{ url_for('tutor.list_tutors') }}">👥 Back to Tutors</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+</div>
+{% endblock %}

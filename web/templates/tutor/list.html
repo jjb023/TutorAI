@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Tutors - Tutor AI{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>👥 All Tutors</h1>
+    {% if current_user.username == 'admin' %}
+    <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-success">➕ Add New Tutor</a>
+    {% endif %}
+</div>
+
+{% if not tutors %}
+    <div class="welcome-message">
+        <p>No tutors in database yet.</p>
+        {% if current_user.username == 'admin' %}
+        <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-success">➕ Add your first tutor</a>
+        {% endif %}
+    </div>
+{% else %}
+    <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
+        Managing <strong>{{ tutors|length }}</strong> tutors
+    </p>
+    
+    <div class="student-grid">
+        {% for tutor in tutors %}
+        <div class="student-card">
+            <h3>👤 {{ tutor.full_name }}</h3>
+            <div style="margin: 15px 0;">
+                <p><strong>Username:</strong> {{ tutor.username }}</p>
+                {% if tutor.email %}
+                <p><strong>Email:</strong> {{ tutor.email }}</p>
+                {% endif %}
+                {% if tutor.last_login %}
+                <p><strong>Last Login:</strong> {{ tutor.last_login }}</p>
+                {% else %}
+                <p style="color: #95a5a6;"><em>Never logged in</em></p>
+                {% endif %}
+                <p><strong>Status:</strong> 
+                    {% if tutor.username == 'admin' %}
+                        🔑 Admin
+                    {% else %}
+                        🟢 Active
+                    {% endif %}
+                </p>
+            </div>
+            
+            {% if current_user.username == 'admin' %}
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
+                <a href="{{ url_for('tutor.tutor_detail', tutor_id=tutor.id) }}" class="btn" style="flex: 1; text-align: center;">📊 Details</a>
+                <a href="{{ url_for('tutor.edit_tutor', tutor_id=tutor.id) }}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
+            </div>
+            {% if tutor.username != 'admin' %}
+            <div style="margin-top: 8px;">
+                <form method="POST" action="{{ url_for('tutor.delete_tutor', tutor_id=tutor.id) }}" onsubmit="return confirm('Are you sure you want to delete {{ tutor.full_name }}?')">
+                    <button type="submit" class="btn btn-danger" style="width: 100%; text-align: center;">🗑️ Delete</button>
+                </form>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="nav-links">
+    {% if current_user.username == 'admin' %}
+    <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-success">➕ Add New Tutor</a>
+    {% endif %}
+    <a href="{{ url_for('main.dashboard') }}">🏠 Back to Dashboard</a>
+</div>
+{% endblock %}

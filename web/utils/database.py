@@ -2,10 +2,19 @@ import sqlite3
 from flask import current_app, g
 from contextlib import contextmanager
 
+import sqlite3
+import os
+from flask import current_app, g
+from contextlib import contextmanager
+
 def get_db():
     """Get database connection."""
     if 'db' not in g:
-        g.db = sqlite3.connect(current_app.config['DATABASE_PATH'])
+        # Get the absolute path to the database
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+        
+        g.db = sqlite3.connect(db_path)
         g.db.row_factory = sqlite3.Row
     return g.db
 
@@ -18,7 +27,11 @@ def close_db(e=None):
 @contextmanager
 def get_db_connection():
     """Context manager for database connections."""
-    conn = sqlite3.connect(current_app.config['DATABASE_PATH'])
+    # Get the absolute path to the database
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+    
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
         yield conn

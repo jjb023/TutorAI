@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Session Entry - AI Tutor System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>⚡ Record New Session</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('session.create_session') }}">
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">Student <span class="text-danger">*</span></label>
+                        <select class="form-select" id="student_id" name="student_id" required>
+                            <option value="">Select a student...</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}" {% if selected_student_id == student.id %}selected{% endif %}>
+                                {{ student.name }} (Age {{ student.age }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tutor_id" class="form-label">Tutor <span class="text-danger">*</span></label>
+                        <select class="form-select" id="tutor_id" name="tutor_id" required>
+                            <option value="">Select a tutor...</option>
+                            {% for tutor in tutors %}
+                            <option value="{{ tutor.id }}">{{ tutor.name }} - {{ tutor.subject }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">Duration (minutes) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="duration" name="duration" 
+                                       min="15" max="180" value="60" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="progress_score" class="form-label">Progress Score (1-10) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="progress_score" name="progress_score" 
+                                       min="1" max="10" required>
+                                <div class="form-text">
+                                    1-3: Needs significant work | 4-6: Making progress | 7-8: Good understanding | 9-10: Excellent mastery
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Session Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                  placeholder="Topics covered, areas of difficulty, homework assigned, etc."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-success">💾 Record Session</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not students %}
+<div class="alert alert-warning mt-4" role="alert">
+    <h5 class="alert-heading">No students found!</h5>
+    <p>You need to add students before you can record sessions.</p>
+    <hr>
+    <a href="{{ url_for('student.add_student') }}" class="btn btn-primary">Add First Student</a>
+</div>
+{% endif %}
+
+{% if not tutors %}
+<div class="alert alert-warning mt-4" role="alert">
+    <h5 class="alert-heading">No tutors found!</h5>
+    <p>You need to add tutors before you can record sessions.</p>
+    <hr>
+    <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-primary">Add First Tutor</a>
+</div>
+{% endif %}
+{% endblock %}

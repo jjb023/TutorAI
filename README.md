@@ -140,6 +140,7 @@ python tutor_ai.py
 | 28.05.25 | 4 | Code changes, readme changes, roadmap updates|
 | 29.05.25 | 6 | Local flask website successfully launched |
 | 02.06.25 | 3.5 | Added log in abilities for tutors |
+| 03.06.25 | 1.5 | File Restructure |
 
 
 

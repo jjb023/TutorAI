@@ -2,6 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 
+
 class TutorAIDatabase:
     def __init__(self, db_path="tutor_ai.db"):
         """Initialize database connection and create tables if they don't exist"""
@@ -419,6 +420,7 @@ class TutorAIDatabase:
         except sqlite3.Error as e:
             print(f"❌ Error creating session: {e}")
             return None
+        
 
 
 # Demo usage and testing

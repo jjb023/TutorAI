@@ -13,37 +13,60 @@ def index():
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    with get_db_connection() as conn:
-        # Get statistics
-        total_students = conn.execute('SELECT COUNT(*) FROM students').fetchone()[0]
-        total_tutors = conn.execute('SELECT COUNT(*) FROM tutors').fetchone()[0]
-        total_sessions = conn.execute('SELECT COUNT(*) FROM sessions').fetchone()[0]
+    try:
+        with get_db_connection() as conn:
+            # First, let's see what tables exist
+            tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
+            print("Available tables:", [table[0] for table in tables])
+            
+            # Get statistics using your existing database structure
+            total_students = conn.execute('SELECT COUNT(*) FROM students').fetchone()[0]
+            total_tutors = conn.execute('SELECT COUNT(*) FROM tutors WHERE active = 1').fetchone()[0]
+            
+            # Check if sessions table exists and has data
+            try:
+                total_sessions = conn.execute('SELECT COUNT(*) FROM sessions').fetchone()[0]
+            except:
+                total_sessions = 0
+            
+            # Try to get recent sessions
+            recent_sessions = []
+            try:
+                recent_sessions = conn.execute('''
+                    SELECT s.session_date, s.duration_minutes, st.name as student_name
+                    FROM sessions s
+                    JOIN students st ON s.student_id = st.id
+                    ORDER BY s.session_date DESC
+                    LIMIT 5
+                ''').fetchall()
+            except Exception as e:
+                print(f"Error getting recent sessions: {e}")
         
-        # Get recent sessions
-        recent_sessions = conn.execute('''
-            SELECT s.date, s.duration, s.progress_score, st.name as student_name, t.name as tutor_name
-            FROM sessions s
-            JOIN students st ON s.student_id = st.id
-            JOIN tutors t ON s.tutor_id = t.id
-            ORDER BY s.date DESC
-            LIMIT 5
-        ''').fetchall()
+        stats = {
+            'total_students': total_students,
+            'total_tutors': total_tutors,
+            'total_sessions': total_sessions
+        }
         
-        # Get progress trends (last 10 sessions)
-        progress_data = conn.execute('''
-            SELECT date, progress_score 
-            FROM sessions 
-            ORDER BY date DESC 
-            LIMIT 10
-        ''').fetchall()
+        print(f"Dashboard stats: {stats}")
+        
+        return render_template('dashboard.html', 
+                             stats=stats, 
+                             recent_sessions=recent_sessions,
+                             progress_data=[])
     
-    stats = {
-        'total_students': total_students,
-        'total_tutors': total_tutors,
-        'total_sessions': total_sessions
-    }
-    
-    return render_template('dashboard.html', 
-                         stats=stats, 
-                         recent_sessions=recent_sessions,
-                         progress_data=list(reversed(progress_data)))
+    except Exception as e:
+        print(f"Dashboard error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback stats if database has issues
+        stats = {
+            'total_students': 0,
+            'total_tutors': 0,
+            'total_sessions': 0
+        }
+        return render_template('dashboard.html', 
+                             stats=stats, 
+                             recent_sessions=[],
+                             progress_data=[])

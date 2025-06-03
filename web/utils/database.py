@@ -1,18 +1,22 @@
 import sqlite3
-from flask import current_app, g
-from contextlib import contextmanager
-
-import sqlite3
 import os
 from flask import current_app, g
 from contextlib import contextmanager
 
+def get_db_path():
+    """Get the absolute path to the database."""
+    # Get current working directory (should be web/)
+    current_dir = os.getcwd()
+    # Go up one level to project root, then to data/
+    db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+    return os.path.abspath(db_path)
+
 def get_db():
     """Get database connection."""
     if 'db' not in g:
-        # Get the absolute path to the database
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+        db_path = get_db_path()
+        print(f"Database path: {db_path}")
+        print(f"Database exists: {os.path.exists(db_path)}")
         
         g.db = sqlite3.connect(db_path)
         g.db.row_factory = sqlite3.Row
@@ -27,9 +31,9 @@ def close_db(e=None):
 @contextmanager
 def get_db_connection():
     """Context manager for database connections."""
-    # Get the absolute path to the database
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
+    db_path = get_db_path()
+    
+    print(f"Connecting to database at: {db_path}")
     
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -37,49 +41,6 @@ def get_db_connection():
         yield conn
     finally:
         conn.close()
-
-def init_db():
-    """Initialize the database with tables."""
-    with get_db_connection() as conn:
-        conn.executescript('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                is_admin BOOLEAN DEFAULT FALSE
-            );
-
-            CREATE TABLE IF NOT EXISTS students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                age INTEGER NOT NULL,
-                contact_info TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
-
-            CREATE TABLE IF NOT EXISTS tutors (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                subject TEXT NOT NULL,
-                experience TEXT,
-                hourly_rate REAL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
-
-            CREATE TABLE IF NOT EXISTS sessions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                student_id INTEGER NOT NULL,
-                tutor_id INTEGER NOT NULL,
-                date DATETIME NOT NULL,
-                duration INTEGER NOT NULL,
-                notes TEXT,
-                progress_score INTEGER CHECK(progress_score >= 1 AND progress_score <= 10),
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (student_id) REFERENCES students (id),
-                FOREIGN KEY (tutor_id) REFERENCES tutors (id)
-            );
-        ''')
-        conn.commit()
 
 def init_app(app):
     """Initialize database with Flask app."""

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{% if topic %}Edit Topic{% else %}Add Topic{% endif %} - Tutor AI{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{% if topic %}✏️ Edit Topic: {{ topic.topic_name }}{% else %}➕ Add New Topic{% endif %}</h1>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="topic_name">Topic Name <span style="color: red;">*</span></label>
+            <input type="text" id="topic_name" name="topic_name" class="form-control" 
+                   value="{{ topic.topic_name if topic else '' }}" required
+                   placeholder="e.g., Number, Algebra, Geometry">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="3"
+                      placeholder="Brief description of what this topic covers">{{ topic.description if topic and topic.description else '' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="target_year_groups">Target Year Groups</label>
+            <input type="text" id="target_year_groups" name="target_year_groups" class="form-control" 
+                   value="{{ topic.target_year_groups if topic and topic.target_year_groups else '' }}"
+                   placeholder="e.g., Year 3-6">
+        </div>
+        
+        <div class="form-group">
+            <label for="color_code">Topic Color</label>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <input type="color" id="color_code" name="color_code" 
+                       value="{{ topic.color_code if topic and topic.color_code else '#607EBC' }}"
+                       style="width: 80px; height: 40px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer;">
+                <span style="color: #666;">Choose a color to identify this topic</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_for('topic.list_topics') }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-success">
+                {% if topic %}💾 Update Topic{% else %}➕ Add Topic{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="nav-links">
+    <a href="{{ url_for('topic.list_topics') }}">📚 Back to Topics</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+</div>
+{% endblock %}

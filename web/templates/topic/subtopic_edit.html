@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Add Subtopic - Tutor AI{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>➕ Add Subtopic to: {{ topic.topic_name }}</h1>
+    
+    <div class="student-card" style="border-left: 5px solid {{ topic.color_code or '#607EBC' }}; margin-bottom: 30px;">
+        <p><strong>Main Topic:</strong> {{ topic.topic_name }}</p>
+        {% if topic.description %}
+        <p><strong>Description:</strong> {{ topic.description }}</p>
+        {% endif %}
+    </div>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="subtopic_name">Subtopic Name <span style="color: red;">*</span></label>
+            <input type="text" id="subtopic_name" name="subtopic_name" class="form-control" required
+                   placeholder="e.g., Addition, Fractions - Recognition, Solving Equations">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="3"
+                      placeholder="What does this subtopic cover? Any specific skills or concepts?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="difficulty_order">Difficulty Order</label>
+            <input type="number" id="difficulty_order" name="difficulty_order" class="form-control" 
+                   value="1" min="1" max="999"
+                   placeholder="1 = easiest, higher numbers = more difficult">
+            <small style="color: #666;">This determines the order subtopics appear and helps track progression</small>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_for('topic.topic_detail', topic_id=topic.id) }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-success">➕ Add Subtopic</button>
+        </div>
+    </form>
+</div>
+
+<div class="nav-links">
+    <a href="{{ url_for('topic.topic_detail', topic_id=topic.id) }}">📖 Back to {{ topic.topic_name }}</a>
+    <a href="{{ url_for('topic.list_topics') }}">📚 All Topics</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+</div>
+{% endblock %}

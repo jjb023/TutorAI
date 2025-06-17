@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ topic.topic_name }} - Tutor AI{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1 style="color: {{ topic.color_code or '#607EBC' }};">📖 {{ topic.topic_name }}</h1>
+    <div>
+        {% if current_user.username == 'admin' %}
+        <a href="{{ url_for('topic.add_subtopic', topic_id=topic.id) }}" class="btn btn-success">➕ Add Subtopic</a>
+        <a href="{{ url_for('topic.edit_topic', topic_id=topic.id) }}" class="btn btn-warning">✏️ Edit Topic</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="student-card" style="border-left: 5px solid {{ topic.color_code or '#607EBC' }};">
+    <h3>Topic Information</h3>
+    {% if topic.description %}
+    <p><strong>Description:</strong> {{ topic.description }}</p>
+    {% endif %}
+    {% if topic.target_year_groups %}
+    <p><strong>Target Year Groups:</strong> {{ topic.target_year_groups }}</p>
+    {% endif %}
+    <p><strong>Total Subtopics:</strong> {{ subtopics|length }}</p>
+</div>
+
+<div style="margin-top: 30px;">
+    <h3>📝 Subtopics ({{ subtopics|length }})</h3>
+    
+    {% if not subtopics %}
+        <div class="welcome-message">
+            <p>No subtopics added yet.</p>
+            {% if current_user.username == 'admin' %}
+            <a href="{{ url_for('topic.add_subtopic', topic_id=topic.id) }}" class="btn btn-success">➕ Add First Subtopic</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div style="margin-top: 20px;">
+            {% for subtopic in subtopics %}
+            <div class="subtopic-item" style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 10px; border-left: 4px solid {{ topic.color_code or '#607EBC' }};">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 10px 0;">
+                            <span style="color: #666; font-size: 0.9em;">#{{ subtopic.difficulty_order }}</span>
+                            {{ subtopic.subtopic_name }}
+                        </h4>
+                        {% if subtopic.description %}
+                        <p style="color: #666; margin: 5px 0;">{{ subtopic.description }}</p>
+                        {% endif %}
+                    </div>
+                    {% if current_user.username == 'admin' %}
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-warning" onclick="alert('Edit subtopic feature coming soon!')">✏️ Edit</button>
+                        <form method="POST" action="{{ url_for('topic.delete_subtopic', topic_id=topic.id, subtopic_id=subtopic.id) }}" style="display: inline;" onsubmit="return confirm('Delete {{ subtopic.subtopic_name }}? This will also delete all student progress for this subtopic.')">
+                            <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <p style="color: #666; font-size: 0.9em; margin: 0;">
+                        💡 This subtopic can be assessed with a mastery level from 1-10 during student sessions
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<div class="nav-links">
+    <a href="{{ url_for('topic.list_topics') }}">📚 Back to Topics</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+</div>
+{% endblock %}

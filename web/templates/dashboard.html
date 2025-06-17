@@ -25,6 +25,7 @@
     <a href="{{ url_for('student.list_students') }}" class="btn">📚 View All Students</a>
     <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add New Student</a>
     <a href="{{ url_for('tutor.list_tutors') }}" class="btn btn-warning">👥 View All Tutors</a>
+    <a href="{{ url_for('topic.list_topics') }}" class="btn" style="background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%); color: white;">📚 Manage Topics</a>
     {% if current_user.username == 'admin' %}
     <a href="{{ url_for('tutor.add_tutor') }}" class="btn" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">🔑 Manage Tutors</a>
     {% endif %}

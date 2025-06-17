@@ -49,3 +49,19 @@ def add_topic():
             flash(f'Error adding topic: {e}', 'error')
     
     return render_template('topic/edit.html')
+
+@topic_bp.route('/<int:topic_id>/subtopic/<int:subtopic_id>/delete', methods=['POST'])
+@login_required
+def delete_subtopic(topic_id, subtopic_id):
+    """Delete a subtopic (admin only)."""
+    if current_user.username != 'admin':
+        flash('Admin access required.', 'error')
+        return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+    
+    try:
+        TopicService.delete_subtopic(subtopic_id)
+        flash('Subtopic deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting subtopic: {e}', 'error')
+    
+    return redirect(url_for('topic.topic_detail', topic_id=topic_id))

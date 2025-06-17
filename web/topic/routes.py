@@ -65,3 +65,82 @@ def delete_subtopic(topic_id, subtopic_id):
         flash(f'Error deleting subtopic: {e}', 'error')
     
     return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+
+@topic_bp.route('/<int:topic_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_topic(topic_id):
+    """Edit topic details (admin only)."""
+    if current_user.username != 'admin':
+        flash('Admin access required.', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    topic = TopicService.get_main_topic(topic_id)
+    if not topic:
+        flash('Topic not found!', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    if request.method == 'POST':
+        topic_name = request.form.get('topic_name', '').strip()
+        description = request.form.get('description', '').strip() or None
+        target_year_groups = request.form.get('target_year_groups', '').strip() or None
+        color_code = request.form.get('color_code', '').strip() or topic.color_code
+        
+        if not topic_name:
+            flash('Topic name is required!', 'error')
+            return render_template('topic/edit.html', topic=topic)
+        
+        try:
+            TopicService.update_main_topic(topic_id, topic_name, description, target_year_groups, color_code)
+            flash(f'Topic {topic_name} updated successfully!', 'success')
+            return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+        except Exception as e:
+            flash(f'Error updating topic: {e}', 'error')
+    
+    return render_template('topic/edit.html', topic=topic)
+
+@topic_bp.route('/<int:topic_id>/delete', methods=['POST'])
+@login_required
+def delete_topic(topic_id):
+    """Delete topic (admin only)."""
+    if current_user.username != 'admin':
+        flash('Admin access required.', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    try:
+        TopicService.delete_main_topic(topic_id)
+        flash('Topic deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting topic: {e}', 'error')
+    
+    return redirect(url_for('topic.list_topics'))
+
+@topic_bp.route('/<int:topic_id>/add-subtopic', methods=['GET', 'POST'])
+@login_required
+def add_subtopic(topic_id):
+    """Add a subtopic to a main topic (admin only)."""
+    if current_user.username != 'admin':
+        flash('Admin access required.', 'error')
+        return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+    
+    topic = TopicService.get_main_topic(topic_id)
+    if not topic:
+        flash('Topic not found!', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    if request.method == 'POST':
+        subtopic_name = request.form.get('subtopic_name', '').strip()
+        description = request.form.get('description', '').strip() or None
+        difficulty_order = request.form.get('difficulty_order', type=int) or 1
+        
+        if not subtopic_name:
+            flash('Subtopic name is required!', 'error')
+            return render_template('topic/subtopic_edit.html', topic=topic)
+        
+        try:
+            TopicService.create_subtopic(topic_id, subtopic_name, description, difficulty_order)
+            flash(f'Subtopic {subtopic_name} added successfully!', 'success')
+            return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+        except Exception as e:
+            flash(f'Error adding subtopic: {e}', 'error')
+    
+    return render_template('topic/subtopic_edit.html', topic=topic)

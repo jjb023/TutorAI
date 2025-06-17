@@ -58,12 +58,14 @@ def create_app(config_name='default'):
     from student import student_bp
     from tutor import tutor_bp
     from session import session_bp
+    from topic import topic_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(tutor_bp)
     app.register_blueprint(session_bp)
+    app.register_blueprint(topic_bp)
     
     return app
 

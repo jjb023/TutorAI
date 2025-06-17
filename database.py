@@ -2,7 +2,6 @@ import sqlite3
 import os
 from datetime import datetime
 
-
 class TutorAIDatabase:
     def __init__(self, db_path="tutor_ai.db"):
         """Initialize database connection and create tables if they don't exist"""
@@ -420,6 +419,102 @@ class TutorAIDatabase:
         except sqlite3.Error as e:
             print(f"❌ Error creating session: {e}")
             return None
+        
+    def get_all_main_topics(self):
+        """Get all main topics"""
+        query = "SELECT * FROM main_topics ORDER BY topic_name"
+        try:
+            self.cursor.execute(query)
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"❌ Error getting main topics: {e}")
+            return []
+
+    def get_main_topic(self, topic_id):
+        """Get a specific main topic by ID"""
+        query = "SELECT * FROM main_topics WHERE id = ?"
+        try:
+            self.cursor.execute(query, (topic_id,))
+            return self.cursor.fetchone()
+        except sqlite3.Error as e:
+            print(f"❌ Error getting main topic: {e}")
+            return None
+
+    def update_main_topic(self, topic_id, topic_name, description=None, target_year_groups=None, color_code=None):
+        """Update a main topic"""
+        query = """
+        UPDATE main_topics 
+        SET topic_name = ?, description = ?, target_year_groups = ?, color_code = ?
+        WHERE id = ?
+        """
+        try:
+            self.cursor.execute(query, (topic_name, description, target_year_groups, color_code, topic_id))
+            self.connection.commit()
+            print(f"✅ Updated main topic: {topic_name}")
+            return True
+        except sqlite3.Error as e:
+            print(f"❌ Error updating main topic: {e}")
+            return False
+
+    def delete_main_topic(self, topic_id):
+        """Delete a main topic and all its subtopics"""
+        try:
+            # First delete all subtopics
+            self.cursor.execute("DELETE FROM subtopics WHERE main_topic_id = ?", (topic_id,))
+            # Then delete the main topic
+            self.cursor.execute("DELETE FROM main_topics WHERE id = ?", (topic_id,))
+            self.connection.commit()
+            print(f"✅ Deleted main topic and its subtopics")
+            return True
+        except sqlite3.Error as e:
+            print(f"❌ Error deleting main topic: {e}")
+            return False
+
+    def get_subtopics_by_main_topic(self, main_topic_id):
+        """Get all subtopics for a main topic"""
+        query = """
+        SELECT * FROM subtopics 
+        WHERE main_topic_id = ? 
+        ORDER BY difficulty_order
+        """
+        try:
+            self.cursor.execute(query, (main_topic_id,))
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"❌ Error getting subtopics: {e}")
+            return []
+
+    def update_subtopic(self, subtopic_id, subtopic_name, description=None, difficulty_order=1):
+        """Update a subtopic"""
+        query = """
+        UPDATE subtopics 
+        SET subtopic_name = ?, description = ?, difficulty_order = ?
+        WHERE id = ?
+        """
+        try:
+            self.cursor.execute(query, (subtopic_name, description, difficulty_order, subtopic_id))
+            self.connection.commit()
+            print(f"✅ Updated subtopic: {subtopic_name}")
+            return True
+        except sqlite3.Error as e:
+            print(f"❌ Error updating subtopic: {e}")
+            return False
+
+    def delete_subtopic(self, subtopic_id):
+        """Delete a subtopic"""
+        try:
+            # First delete any progress records for this subtopic
+            self.cursor.execute("DELETE FROM subtopic_progress WHERE subtopic_id = ?", (subtopic_id,))
+            # Then delete the subtopic
+            self.cursor.execute("DELETE FROM subtopics WHERE id = ?", (subtopic_id,))
+            self.connection.commit()
+            print(f"✅ Deleted subtopic")
+            return True
+        except sqlite3.Error as e:
+            print(f"❌ Error deleting subtopic: {e}")
+            return False
+        
+    
         
 
 

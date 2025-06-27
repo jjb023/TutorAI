@@ -194,11 +194,20 @@ class SessionService:
                     ORDER BY s.difficulty_order
                 ''', (topic['id'],)).fetchall()
                 
+                # Convert Row objects to dictionaries
+                subtopic_list = []
+                for sub in subtopics:
+                    subtopic_list.append({
+                        'id': sub['id'],
+                        'subtopic_name': sub['subtopic_name'],
+                        'difficulty_order': sub['difficulty_order']
+                    })
+                
                 topics_with_subtopics.append({
                     'id': topic['id'],
                     'topic_name': topic['topic_name'],
                     'color_code': topic['color_code'],
-                    'subtopics': subtopics
+                    'subtopics': subtopic_list
                 })
             
             return topics_with_subtopics

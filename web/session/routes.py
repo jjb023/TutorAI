@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .services import SessionService
 from student.services import StudentService
-from tutor.services import TutorService
+from topic.services import TopicService
 
 session_bp = Blueprint('session', __name__, url_prefix='/sessions')
 
@@ -75,7 +75,7 @@ def create_session():
         
         # Get student name for success message
         student = StudentService.get_student(student_id)
-        student_name = student.name if student else "Student"
+        student_name = student['name'] if student else "Student"
         
         flash(f'Session recorded for {student_name} with {len(subtopic_assessments)} topics assessed!', 'success')
         return redirect(url_for('student.student_detail', student_id=student_id))
@@ -105,3 +105,24 @@ def quick_update(student_id):
     return render_template('session/quick_update.html',
                          student=student,
                          topics=topics)
+
+@session_bp.route('/test')
+@login_required
+def test():
+    """Test route to debug the issue"""
+    try:
+        # Test getting students
+        students = StudentService.get_all_students()
+        print(f"Students type: {type(students)}")
+        print(f"First student type: {type(students[0]) if students else 'No students'}")
+        
+        if students:
+            student = students[0]
+            print(f"Student data: {student}")
+            print(f"Student name via dict: {student['name']}")
+        
+        return "Check console output"
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"Error: {str(e)}"

@@ -142,7 +142,8 @@ python tutor_ai.py
 | 02.06.25 | 3.5 | Added log in abilities for tutors |
 | 03.06.25 | 1.5 | File Restructure |
 | 17.06.25 | 2 | Topics + subtopic integration |
-| 27.06.25 |  |  |
+| 27.06.25 | 1 | Migrating databases |
+
 
 
 

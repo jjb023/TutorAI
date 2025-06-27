@@ -6,16 +6,20 @@ class StudentService:
     def get_all_students():
         """Get all students with basic info."""
         with get_db_connection() as conn:
-            return conn.execute('''
+            results = conn.execute('''
                 SELECT * FROM students 
                 ORDER BY name
             ''').fetchall()
+            # Convert Row objects to dictionaries
+            return [dict(row) for row in results]
     
     @staticmethod
     def get_student(student_id):
         """Get a student by ID."""
         with get_db_connection() as conn:
-            return conn.execute('SELECT * FROM students WHERE id = ?', (student_id,)).fetchone()
+            result = conn.execute('SELECT * FROM students WHERE id = ?', (student_id,)).fetchone()
+            # Convert Row to dict for consistent access
+            return dict(result) if result else None
     
     @staticmethod
     def create_student(name, age, year_group, target_school=None, parent_contact=None, notes=None):
@@ -75,10 +79,15 @@ class StudentService:
     def get_subtopic_progress(student_id, subtopic_id):
         """Get progress for a specific subtopic."""
         with get_db_connection() as conn:
-            return conn.execute('''
+            result = conn.execute('''
                 SELECT * FROM subtopic_progress
                 WHERE student_id = ? AND subtopic_id = ?
             ''', (student_id, subtopic_id)).fetchone()
+            
+            # Return as a dictionary for consistent access
+            if result:
+                return dict(result)
+            return None
     
     @staticmethod
     def get_session_count(student_id):

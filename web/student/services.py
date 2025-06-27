@@ -1,11 +1,15 @@
+# web/student/services.py
 from utils.database import get_db_connection
 
 class StudentService:
     @staticmethod
     def get_all_students():
-        """Get all students using your existing database structure."""
+        """Get all students with basic info."""
         with get_db_connection() as conn:
-            return conn.execute('SELECT * FROM students ORDER BY name').fetchall()
+            return conn.execute('''
+                SELECT * FROM students 
+                ORDER BY name
+            ''').fetchall()
     
     @staticmethod
     def get_student(student_id):
@@ -15,53 +19,42 @@ class StudentService:
     
     @staticmethod
     def create_student(name, age, year_group, target_school=None, parent_contact=None, notes=None):
-        """Create a new student using your existing database structure."""
+        """Create a new student."""
         with get_db_connection() as conn:
-            conn.execute(
-                'INSERT INTO students (name, age, year_group, target_school, parent_contact, notes) VALUES (?, ?, ?, ?, ?, ?)',
-                (name, age, year_group, target_school, parent_contact, notes)
-            )
+            cursor = conn.execute('''
+                INSERT INTO students (name, age, year_group, target_school, parent_contact, notes)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (name, age, year_group, target_school, parent_contact, notes))
             conn.commit()
+            return cursor.lastrowid
     
     @staticmethod
     def update_student(student_id, name, age, year_group, target_school=None, parent_contact=None, notes=None):
         """Update a student."""
         with get_db_connection() as conn:
-            conn.execute(
-                'UPDATE students SET name = ?, age = ?, year_group = ?, target_school = ?, parent_contact = ?, notes = ? WHERE id = ?',
-                (name, age, year_group, target_school, parent_contact, notes, student_id)
-            )
+            conn.execute('''
+                UPDATE students 
+                SET name = ?, age = ?, year_group = ?, target_school = ?, parent_contact = ?, notes = ?
+                WHERE id = ?
+            ''', (name, age, year_group, target_school, parent_contact, notes, student_id))
             conn.commit()
     
     @staticmethod
     def delete_student(student_id):
         """Delete a student and all related progress."""
         with get_db_connection() as conn:
-            # Delete progress first (foreign key constraint)
+            # Delete in order due to foreign key constraints
             conn.execute('DELETE FROM subtopic_progress WHERE student_id = ?', (student_id,))
-            # Delete sessions
             conn.execute('DELETE FROM sessions WHERE student_id = ?', (student_id,))
-            # Delete student
             conn.execute('DELETE FROM students WHERE id = ?', (student_id,))
             conn.commit()
     
     @staticmethod
-    def get_student_sessions(student_id):
-        """Get all sessions for a student."""
-        with get_db_connection() as conn:
-            return conn.execute('''
-                SELECT s.*, 'Tutor' as tutor_name 
-                FROM sessions s
-                WHERE s.student_id = ?
-                ORDER BY s.session_date DESC
-            ''', (student_id,)).fetchall()
-    
-    @staticmethod
     def get_student_progress_summary(student_id):
-        """Get progress summary for a student using your existing structure."""
+        """Get summary of student progress across all topics."""
         with get_db_connection() as conn:
-            # Get main topic summary using your existing database structure
-            summary = conn.execute('''
+            # Get topic-level summary
+            topic_summaries = conn.execute('''
                 SELECT 
                     mt.topic_name,
                     mt.color_code,
@@ -76,4 +69,59 @@ class StudentService:
                 ORDER BY mt.topic_name
             ''', (student_id,)).fetchall()
             
-            return summary
+            return {'topic_summaries': topic_summaries}
+    
+    @staticmethod
+    def get_subtopic_progress(student_id, subtopic_id):
+        """Get progress for a specific subtopic."""
+        with get_db_connection() as conn:
+            return conn.execute('''
+                SELECT * FROM subtopic_progress
+                WHERE student_id = ? AND subtopic_id = ?
+            ''', (student_id, subtopic_id)).fetchone()
+    
+    @staticmethod
+    def get_session_count(student_id):
+        """Get total number of sessions for a student."""
+        with get_db_connection() as conn:
+            result = conn.execute('''
+                SELECT COUNT(*) FROM sessions WHERE student_id = ?
+            ''', (student_id,)).fetchone()
+            return result[0] if result else 0
+    
+    @staticmethod
+    def get_recent_activity(student_id, days=30):
+        """Get recent activity for a student."""
+        with get_db_connection() as conn:
+            return conn.execute('''
+                SELECT 
+                    sp.last_assessed as date,
+                    s.subtopic_name,
+                    mt.topic_name,
+                    sp.mastery_level
+                FROM subtopic_progress sp
+                JOIN subtopics s ON sp.subtopic_id = s.id
+                JOIN main_topics mt ON s.main_topic_id = mt.id
+                WHERE sp.student_id = ? 
+                    AND date(sp.last_assessed) >= date('now', '-' || ? || ' days')
+                ORDER BY sp.last_assessed DESC
+            ''', (student_id, days)).fetchall()
+    
+    @staticmethod
+    def get_mastery_distribution(student_id):
+        """Get distribution of mastery levels for visualization."""
+        with get_db_connection() as conn:
+            return conn.execute('''
+                SELECT 
+                    CASE 
+                        WHEN mastery_level >= 8 THEN 'Excellent (8-10)'
+                        WHEN mastery_level >= 5 THEN 'Good (5-7)'
+                        WHEN mastery_level >= 3 THEN 'Developing (3-4)'
+                        ELSE 'Beginning (1-2)'
+                    END as level_group,
+                    COUNT(*) as count
+                FROM subtopic_progress
+                WHERE student_id = ? AND mastery_level > 0
+                GROUP BY level_group
+                ORDER BY mastery_level DESC
+            ''', (student_id,)).fetchall()

@@ -141,6 +141,9 @@ python tutor_ai.py
 | 29.05.25 | 6 | Local flask website successfully launched |
 | 02.06.25 | 3.5 | Added log in abilities for tutors |
 | 03.06.25 | 1.5 | File Restructure |
+| 17.06.25 | 2 | Topics + subtopic integration |
+| 27.06.25 |  |  |
+
 
 
 

@@ -27,19 +27,38 @@
                 {% if student.target_school %}
                 <p><strong>School:</strong> {{ student.target_school }}</p>
                 {% endif %}
+                
+                <!-- Progress Indicator -->
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span><strong>Overall Progress:</strong></span>
+                        <span style="font-weight: bold; color: {% if student.overall_progress >= 70 %}#27ae60{% elif student.overall_progress >= 40 %}#f39c12{% else %}#e74c3c{% endif %};">
+                            {{ student.overall_progress }}%
+                        </span>
+                    </div>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: {% if student.overall_progress >= 70 %}#27ae60{% elif student.overall_progress >= 40 %}#f39c12{% else %}#e74c3c{% endif %}; 
+                                    width: {{ student.overall_progress }}%; height: 100%; transition: width 0.3s;"></div>
+                    </div>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                        {{ student.topics_assessed }} subtopics assessed
+                    </p>
+                </div>
+                
                 {% if student.last_session_date %}
                 <p style="color: #27ae60;"><strong>Last Session:</strong> {{ student.last_session_date }}</p>
                 {% else %}
                 <p style="color: #95a5a6;"><em>No sessions yet</em></p>
                 {% endif %}
             </div>
+            
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
-                <a href="{{ url_for('student.student_detail', student_id=student.id) }}" class="btn" style="flex: 1; min-width: 120px; text-align: center;">📊 Progress</a>
-                <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success" style="flex: 1; min-width: 120px; text-align: center;">⚡ Session</a>
+                <a href="{{ url_for('student.student_detail', student_id=student.id) }}" class="btn" style="flex: 1; min-width: 120px; text-align: center;">📊 View Progress</a>
+                <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success" style="flex: 1; min-width: 120px; text-align: center;">⚡ New Session</a>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                 <a href="{{ url_for('student.edit_student', student_id=student.id) }}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
-                <form method="POST" action="{{ url_for('student.delete_student', student_id=student.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete {{ student.name }}?')">
+                <form method="POST" action="{{ url_for('student.delete_student', student_id=student.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete {{ student.name }}? This will delete all progress data.')">
                     <button type="submit" class="btn btn-danger" style="width: 100%; text-align: center;">🗑️ Delete</button>
                 </form>
             </div>
@@ -50,6 +69,7 @@
 
 <div class="nav-links">
     <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add New Student</a>
+    <a href="{{ url_for('topic.list_topics') }}" class="btn">📚 Manage Topics</a>
     <a href="{{ url_for('main.dashboard') }}">🏠 Back to Dashboard</a>
 </div>
 {% endblock %}

@@ -3,93 +3,226 @@
 {% block title %}{{ student.name }} - Progress Report{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>📊 Progress Report: {{ student.name }}</h1>
-    <div>
-        <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success">⚡ New Session</a>
-        <a href="{{ url_for('student.edit_student', student_id=student.id) }}" class="btn btn-warning">✏️ Edit Student</a>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>📊 Progress Report: {{ student.name }}</h1>
+        <div>
+            <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success">⚡ New Session</a>
+            <a href="{{ url_for('student.edit_student', student_id=student.id) }}" class="btn btn-warning">✏️ Edit</a>
+        </div>
+    </div>
+
+    <!-- Student Info Cards -->
+    <div class="student-grid">
+        <div class="student-card">
+            <h3>Student Information</h3>
+            <p><strong>Age:</strong> {{ student.age }}</p>
+            <p><strong>Year Group:</strong> {{ student.year_group }}</p>
+            {% if student.target_school %}
+            <p><strong>Target School:</strong> {{ student.target_school }}</p>
+            {% endif %}
+            <p><strong>Joined:</strong> {{ student.created_date }}</p>
+        </div>
+        
+        <div class="student-card">
+            <h3>Session Statistics</h3>
+            <p><strong>Total Sessions:</strong> {{ session_count }}</p>
+            <p><strong>Last Session:</strong> {{ last_session_date or 'No sessions yet' }}</p>
+            <p><strong>Topics Assessed:</strong> {{ topics_assessed }} / {{ total_subtopics }}</p>
+            <p><strong>Overall Progress:</strong> {{ overall_progress }}%</p>
+        </div>
+    </div>
+
+    <!-- Topic Progress Overview -->
+    <div style="margin: 30px 0;">
+        <h2>📚 Topic Progress Overview</h2>
+        
+        {% for topic_summary in topic_summaries %}
+        <div class="progress-card {% if topic_summary.avg_mastery >= 7 %}excellent{% elif topic_summary.avg_mastery >= 4 %}good{% else %}needs-work{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0; color: {{ topic_summary.color_code }};">
+                        {{ topic_summary.topic_name }}
+                    </h3>
+                    <p style="margin: 5px 0;">
+                        Progress: <strong>{{ topic_summary.completion_percentage }}%</strong> 
+                        ({{ topic_summary.assessed_subtopics }}/{{ topic_summary.total_subtopics }} subtopics)
+                    </p>
+                    {% if topic_summary.assessed_subtopics > 0 %}
+                    <p style="margin: 5px 0;">
+                        Average Mastery: <strong>{{ topic_summary.avg_mastery }}/10</strong>
+                    </p>
+                    {% endif %}
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5em;">
+                        {% if topic_summary.avg_mastery >= 8 %}🌟
+                        {% elif topic_summary.avg_mastery >= 6 %}✅
+                        {% elif topic_summary.avg_mastery >= 4 %}📈
+                        {% elif topic_summary.assessed_subtopics > 0 %}⚠️
+                        {% else %}⭕
+                        {% endif %}
+                    </div>
+                    <a href="#{{ topic_summary.topic_name|replace(' ', '_') }}" class="btn" style="margin-top: 10px;">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Detailed Subtopic Progress -->
+    <div style="margin: 40px 0;">
+        <h2>📝 Detailed Progress by Subtopic</h2>
+        
+        {% for topic_detail in detailed_progress %}
+        <div id="{{ topic_detail.topic_name|replace(' ', '_') }}" class="topic-section" style="margin: 30px 0;">
+            <h3 style="color: {{ topic_detail.color_code }};">{{ topic_detail.topic_name }}</h3>
+            
+            <div style="display: grid; gap: 15px;">
+                {% for subtopic in topic_detail.subtopics %}
+                <div class="subtopic-progress-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0;">{{ subtopic.subtopic_name }}</h4>
+                            {% if subtopic.mastery_level > 0 %}
+                            <p style="margin: 5px 0; color: #666;">
+                                Last assessed: {{ subtopic.last_assessed }}
+                            </p>
+                            {% if subtopic.questions_attempted > 0 %}
+                            <p style="margin: 5px 0; color: #666;">
+                                Accuracy: {{ (subtopic.questions_correct / subtopic.questions_attempted * 100)|round|int }}% 
+                                ({{ subtopic.questions_correct }}/{{ subtopic.questions_attempted }})
+                            </p>
+                            {% endif %}
+                            {% if subtopic.notes %}
+                            <p style="margin: 5px 0; font-style: italic; color: #666;">
+                                "{{ subtopic.notes }}"
+                            </p>
+                            {% endif %}
+                            {% else %}
+                            <p style="margin: 5px 0; color: #999;">Not yet assessed</p>
+                            {% endif %}
+                        </div>
+                        <div style="text-align: center; min-width: 100px;">
+                            <div class="mastery-circle {% if subtopic.mastery_level >= 8 %}excellent{% elif subtopic.mastery_level >= 5 %}good{% elif subtopic.mastery_level > 0 %}needs-work{% else %}not-assessed{% endif %}">
+                                {{ subtopic.mastery_level or '-' }}
+                            </div>
+                            <small>Mastery Level</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Sessions with Topics -->
+    {% if recent_sessions %}
+    <div style="margin: 40px 0;">
+        <h2>📅 Recent Sessions</h2>
+        
+        {% for session in recent_sessions %}
+        <div class="student-card">
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <h4>{{ session.session_date }}</h4>
+                    <p><strong>Duration:</strong> {{ session.duration_minutes }} minutes</p>
+                    {% if session.topics_covered %}
+                    <p><strong>Topics:</strong> {{ session.topics_covered }}</p>
+                    {% endif %}
+                    {% if session.subtopics_assessed %}
+                    <p><strong>Subtopics Assessed:</strong> {{ session.subtopics_assessed|length }}</p>
+                    <ul style="margin: 10px 0;">
+                        {% for assessment in session.subtopics_assessed %}
+                        <li>{{ assessment.subtopic_name }}: {{ assessment.old_level }} → {{ assessment.new_level }}/10</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                <div>
+                    <p><strong>Tutor:</strong> {{ session.tutor_name }}</p>
+                </div>
+            </div>
+            {% if session.notes %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                <p style="font-style: italic;">{{ session.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Recommendations -->
+    <div style="margin: 40px 0;">
+        <h2>💡 Recommendations</h2>
+        <div class="welcome-message">
+            {% if weak_areas %}
+            <h4>Focus Areas:</h4>
+            <ul>
+                {% for area in weak_areas %}
+                <li><strong>{{ area.subtopic_name }}</strong> ({{ area.topic_name }}) - Currently at {{ area.mastery_level }}/10</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            
+            {% if ready_to_advance %}
+            <h4>Ready to Advance:</h4>
+            <ul>
+                {% for area in ready_to_advance %}
+                <li><strong>{{ area.subtopic_name }}</strong> - Consider introducing {{ area.next_subtopic }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success">⚡ Record New Session</a>
+        <a href="{{ url_for('student.list_students') }}">📚 Back to Students</a>
+        <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>Student Information</h5>
-            </div>
-            <div class="card-body">
-                <p><strong>Name:</strong> {{ student.name }}</p>
-                <p><strong>Age:</strong> {{ student.age }}</p>
-                {% if student.contact_info %}
-                <p><strong>Contact:</strong> {{ student.contact_info }}</p>
-                {% endif %}
-                <p><strong>Joined:</strong> {{ student.created_at }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>Session Statistics</h5>
-            </div>
-            <div class="card-body">
-                <p><strong>Total Sessions:</strong> {{ sessions|length }}</p>
-                {% if sessions %}
-                <p><strong>Average Score:</strong> {{ "%.1f"|format(sessions|map(attribute='progress_score')|sum / sessions|length) }}/10</p>
-                <p><strong>Last Session:</strong> {{ sessions[0].date }}</p>
-                {% else %}
-                <p class="text-muted">No sessions recorded yet</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+.subtopic-progress-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-color);
+}
 
-{% if sessions %}
-<div class="card">
-    <div class="card-header">
-        <h5>Session History</h5>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Tutor</th>
-                        <th>Duration</th>
-                        <th>Progress Score</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for session in sessions %}
-                    <tr>
-                        <td>{{ session.date }}</td>
-                        <td>{{ session.tutor_name }}</td>
-                        <td>{{ session.duration }} min</td>
-                        <td>
-                            <span class="badge bg-{% if session.progress_score >= 8 %}success{% elif session.progress_score >= 6 %}warning{% else %}danger{% endif %}">
-                                {{ session.progress_score }}/10
-                            </span>
-                        </td>
-                        <td>{{ session.notes or '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% else %}
-<div class="text-center mt-5">
-    <h3>No sessions recorded yet</h3>
-    <p class="text-muted">Start tracking progress by recording the first session!</p>
-    <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-primary">Record First Session</a>
-</div>
-{% endif %}
+.mastery-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: white;
+    margin: 0 auto;
+}
 
-<div class="mt-4">
-    <a href="{{ url_for('student.list_students') }}" class="btn btn-secondary">← Back to Students</a>
-</div>
+.mastery-circle.excellent {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+
+.mastery-circle.good {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.mastery-circle.needs-work {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.mastery-circle.not-assessed {
+    background: #ddd;
+    color: #999;
+}
+</style>
 {% endblock %}

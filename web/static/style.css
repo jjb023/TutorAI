@@ -426,3 +426,45 @@ h3 {
     border-radius: 8px;
     margin: 20px 0;
 }
+
+/* Stats Cards */
+.stats-card {
+    background: var(--primary-gradient);
+    color: var(--white);
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stats-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.stats-icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: var(--white);
+}
+
+.stats-number {
+    font-size: 2.2em;
+    font-weight: bold;
+    margin: 5px 0;
+    color: var(--white);
+}
+
+.stats-label {
+    font-size: 1.1em;
+    opacity: 0.9;
+    font-weight: 500;
+    color: var(--white);
+}

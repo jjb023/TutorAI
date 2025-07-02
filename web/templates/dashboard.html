@@ -3,7 +3,7 @@
 {% block title %}Dashboard - Tutor AI{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap;">
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(1, 1fr); gap: 20px; margin: 30px 0;">
     <div class="stats-card">
         <div class="stats-icon">📚</div>
         <div class="stats-number">{{ stats.total_students }}</div>
@@ -21,15 +21,17 @@
     </div>
 </div>
 
-<div class="nav-links">
+<div class="nav-links-grid">
     <a href="{{ url_for('student.list_students') }}" class="btn">📚 View All Students</a>
     <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add New Student</a>
     <a href="{{ url_for('tutor.list_tutors') }}" class="btn btn-warning">👥 View All Tutors</a>
     <a href="{{ url_for('topic.list_topics') }}" class="btn" style="background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%); color: white;">📚 Manage Topics</a>
+    <a href="{{ url_for('session.entry') }}" class="btn btn-warning">⚡ Session Entry</a>
     {% if current_user.username == 'admin' %}
     <a href="{{ url_for('tutor.add_tutor') }}" class="btn" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white;">🔑 Manage Tutors</a>
+    {% else %}
+    <div class="btn-placeholder"></div>
     {% endif %}
-    <a href="{{ url_for('session.entry') }}" class="btn btn-warning">⚡ Session Entry</a>
 </div>
 
 {% if recent_sessions %}
@@ -50,7 +52,7 @@
 {% endif %}
 
 <div class="welcome-message">
-    <p>✨ Your professional tutor management system is ready!</p>
+    <p> Your professional tutor management system is ready!</p>
     <p style="font-size: 0.9em; opacity: 0.8;">Track progress • Generate insights • Manage sessions</p>
 </div>
 {% endblock %}

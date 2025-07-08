@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from .services import SessionService
 from student.services import StudentService
 from topic.services import TopicService
+from tutor.services import TutorService
 
 session_bp = Blueprint('session', __name__, url_prefix='/sessions')
 

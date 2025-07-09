@@ -183,14 +183,17 @@ python app.py
 
 | Date | Time Spent (Hours) | Tasks Completed |
 |------|------------|-----------------|
-| 23.05.25 | 1.5 | Set up github repo and folder structure, created readme |
-| 27.05.25 | 3.5 | Created data base with dummy names, created access to data base |
-| 28.05.25 | 4 | Code changes, readme changes, roadmap updates|
-| 29.05.25 | 6 | Local flask website successfully launched |
-| 02.06.25 | 3.5 | Added log in abilities for tutors |
+| 23.05.25 | *1.5* | Set up github repo and folder structure, created readme |
+| 27.05.25 | *3.5* | Created data base with dummy names, created access to data base |
+| 28.05.25 | *4* | Code changes, readme changes, roadmap updates|
+| 29.05.25 | *6* | Local flask website successfully launched |
+| 02.06.25 | *3.5* | Added log in abilities for tutors |
 | 03.06.25 | 1.5 | File Restructure |
 | 17.06.25 | 2 | Topics + subtopic integration |
-| 27.06.25 | 1 | Migrating databases |
+| 27.06.25 | 1.5 | Migrating databases + adding worksheets |
+| 08.07.25 | 1.5 | System Health checks and worksheet prep | 
+
+
 
 
 

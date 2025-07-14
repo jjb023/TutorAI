@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Question Bank - {{ subtopic.subtopic_name }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>📝 Question Bank: {{ subtopic.subtopic_name }}</h1>
+    <a href="{{ url_for('worksheet.add_question', subtopic_id=subtopic.id) }}" class="btn btn-success">
+        ➕ Add Question
+    </a>
+</div>
+
+<!-- Statistics -->
+<div class="stats-row" style="display: flex; gap: 20px; margin-bottom: 30px;">
+    <div class="stats-card" style="flex: 1;">
+        <div class="stats-icon">🟢</div>
+        <div class="stats-number">{{ stats.easy.count }}</div>
+        <div class="stats-label">Easy Questions</div>
+        <small>~{{ stats.easy.avg_time|round|int }} min each</small>
+    </div>
+    <div class="stats-card" style="flex: 1;">
+        <div class="stats-icon">🟡</div>
+        <div class="stats-number">{{ stats.medium.count }}</div>
+        <div class="stats-label">Medium Questions</div>
+        <small>~{{ stats.medium.avg_time|round|int }} min each</small>
+    </div>
+    <div class="stats-card" style="flex: 1;">
+        <div class="stats-icon">🔴</div>
+        <div class="stats-number">{{ stats.hard.count }}</div>
+        <div class="stats-label">Hard Questions</div>
+        <small>~{{ stats.hard.avg_time|round|int }} min each</small>
+    </div>
+</div>
+
+<!-- Questions by Difficulty -->
+<div class="question-sections">
+    <!-- Easy Questions -->
+    <div class="topic-section">
+        <h3>🟢 Easy Questions (1-2 minutes, minimal working space)</h3>
+        {% if questions_by_difficulty.easy %}
+            {% for question in questions_by_difficulty.easy %}
+            <div class="question-card">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                        <small style="color: #666;">
+                            Time: {{ question.time_estimate_minutes }} min | 
+                            Space: {{ question.space_required }}
+                        </small>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-warning" style="padding: 5px 10px;" 
+                                onclick="editQuestion({{ question.id }})">✏️</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" 
+                                onclick="deleteQuestion({{ question.id }})">🗑️</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #999;">No easy questions yet. Add some!</p>
+        {% endif %}
+    </div>
+
+    <!-- Medium Questions -->
+    <div class="topic-section">
+        <h3>🟡 Medium Questions (3-5 minutes, some working space)</h3>
+        {% if questions_by_difficulty.medium %}
+            {% for question in questions_by_difficulty.medium %}
+            <div class="question-card">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                        <small style="color: #666;">
+                            Time: {{ question.time_estimate_minutes }} min | 
+                            Space: {{ question.space_required }}
+                        </small>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-warning" style="padding: 5px 10px;">✏️</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #999;">No medium questions yet. Add some!</p>
+        {% endif %}
+    </div>
+
+    <!-- Hard Questions -->
+    <div class="topic-section">
+        <h3>🔴 Hard Questions (7-10 minutes, ample working space)</h3>
+        {% if questions_by_difficulty.hard %}
+            {% for question in questions_by_difficulty.hard %}
+            <div class="question-card">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                        <small style="color: #666;">
+                            Time: {{ question.time_estimate_minutes }} min | 
+                            Space: {{ question.space_required }}
+                        </small>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-warning" style="padding: 5px 10px;">✏️</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #999;">No hard questions yet. Add some!</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="nav-links">
+    <a href="{{ url_for('topic.topic_detail', topic_id=subtopic.main_topic_id) }}">📚 Back to Topic</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+</div>
+
+<style>
+.question-card {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

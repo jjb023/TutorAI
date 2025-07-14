@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{% if question %}Edit Question{% else %}Add Question{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{% if question %}✏️ Edit Question{% else %}➕ Add Question{% endif %}</h1>
+    <h3>{{ subtopic.subtopic_name }}</h3>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="question_text">Question Text <span style="color: red;">*</span></label>
+            <textarea id="question_text" name="question_text" class="form-control" 
+                      rows="4" required>{{ question.question_text if question else '' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="difficulty_level">Difficulty Level <span style="color: red;">*</span></label>
+            <select id="difficulty_level" name="difficulty_level" class="form-control" required>
+                <option value="">Select difficulty...</option>
+                <option value="1" {% if question and question.difficulty_level == 1 %}selected{% endif %}>
+                    🟢 Easy (1-2 minutes)
+                </option>
+                <option value="2" {% if question and question.difficulty_level == 2 %}selected{% endif %}>
+                    🟡 Medium (3-5 minutes)
+                </option>
+                <option value="3" {% if question and question.difficulty_level == 3 %}selected{% endif %}>
+                    🔴 Hard (7-10 minutes)
+                </option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="time_estimate">Time Estimate (minutes)</label>
+            <input type="number" id="time_estimate" name="time_estimate" class="form-control"
+                   min="1" max="20" value="{{ question.time_estimate_minutes if question else '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="space_required">Space Required</label>
+            <select id="space_required" name="space_required" class="form-control" required>
+                <option value="none" {% if question and question.space_required == 'none' %}selected{% endif %}>
+                    None (answer line only)
+                </option>
+                <option value="small" {% if question and question.space_required == 'small' %}selected{% endif %}>
+                    Small (2-3 lines)
+                </option>
+                <option value="medium" {% if question and question.space_required == 'medium' %}selected{% endif %}>
+                    Medium (5-6 lines)
+                </option>
+                <option value="large" {% if question and question.space_required == 'large' %}selected{% endif %}>
+                    Large (10+ lines)
+                </option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="question_type">Question Type (optional)</label>
+            <input type="text" id="question_type" name="question_type" class="form-control"
+                   placeholder="e.g., word problem, calculation, reasoning"
+                   value="{{ question.question_type if question else '' }}">
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_for('worksheet.question_bank', subtopic_id=subtopic.id) }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-success">
+                {% if question %}💾 Update Question{% else %}➕ Add Question{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@
         <h1>📊 Progress Report: {{ student.name }}</h1>
         <div>
             <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success">⚡ New Session</a>
+            <a href="#" class="btn" style="background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%); color: white;" onclick="showWorksheetOptions()">📄 Generate Worksheet</a>
             <a href="{{ url_for('student.edit_student', student_id=student.id) }}" class="btn btn-warning">✏️ Edit</a>
         </div>
     </div>
@@ -186,6 +187,40 @@
         <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
     </div>
 </div>
+
+<div id="worksheetModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+     background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000;">
+    <h3>Select Topic for Worksheet</h3>
+    <div style="max-height: 400px; overflow-y: auto;">
+        {% for topic in detailed_progress %}
+        <h4>{{ topic.topic_name }}</h4>
+        {% for subtopic in topic.subtopics %}
+        <div style="margin: 10px 0;">
+            <a href="{{ url_for('worksheet.generate_worksheet', student_id=student.id, subtopic_id=subtopic.id) }}"
+               class="btn btn-success" style="width: 100%; text-align: left;">
+                {{ subtopic.subtopic_name }}
+                {% if subtopic.mastery_level > 0 %}
+                (Current: {{ subtopic.mastery_level }}/10)
+                {% else %}
+                (Not assessed)
+                {% endif %}
+            </a>
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
+    <button onclick="hideWorksheetOptions()" class="btn" style="margin-top: 20px;">Cancel</button>
+</div>
+
+<script>
+function showWorksheetOptions() {
+    document.getElementById('worksheetModal').style.display = 'block';
+}
+
+function hideWorksheetOptions() {
+    document.getElementById('worksheetModal').style.display = 'none';
+}
+</script>
 
 <style>
 .subtopic-progress-card {

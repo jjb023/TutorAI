@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Worksheet{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>✏️ Edit Worksheet</h1>
+        <div>
+            <button onclick="saveWorksheet()" class="btn btn-success">💾 Save Changes</button>
+            <a href="{{ url_for('worksheet.finalize_worksheet', worksheet_id=worksheet.id) }}" 
+               class="btn btn-warning">📄 Generate PDF</a>
+        </div>
+    </div>
+    
+    <div class="student-card" style="margin-bottom: 30px;">
+        <h3>{{ worksheet.title }}</h3>
+        <p><strong>Student:</strong> {{ worksheet.student_name }} | 
+           <strong>Topic:</strong> {{ worksheet.topic_name }} - {{ worksheet.subtopic_name }}</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('worksheet.update_worksheet', worksheet_id=worksheet.id) }}" id="worksheet_form">
+        {% for question in questions %}
+        <div class="question-edit-card" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <h4>Question {{ question.question_order }}</h4>
+                <div>
+                    {% if question.difficulty_level == 1 %}
+                    <span style="color: #27ae60;">🟢 Easy</span>
+                    {% elif question.difficulty_level == 2 %}
+                    <span style="color: #f39c12;">🟡 Medium</span>
+                    {% else %}
+                    <span style="color: #e74c3c;">🔴 Hard</span>
+                    {% endif %}
+                    <span style="margin-left: 10px;">{{ question.time_estimate_minutes }} min</span>
+                </div>
+            </div>
+            
+            <input type="hidden" name="question_order" value="{{ question.question_order }}">
+            
+            <div class="form-group">
+                <label>Question Text:</label>
+                <textarea name="question_text_{{ question.question_order }}" class="form-control" rows="3">{{ question.custom_question_text or question.original_text }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Space Allocation:</label>
+                <select name="space_{{ question.question_order }}" class="form-control">
+                    <option value="none" {% if question.space_allocated == 'none' %}selected{% endif %}>None (answer line only)</option>
+                    <option value="small" {% if question.space_allocated == 'small' %}selected{% endif %}>Small (2-3 lines)</option>
+                    <option value="medium" {% if question.space_allocated == 'medium' %}selected{% endif %}>Medium (5-6 lines)</option>
+                    <option value="large" {% if question.space_allocated == 'large' %}selected{% endif %}>Large (10+ lines)</option>
+                </select>
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+    
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="{{ url_for('student.student_detail', student_id=worksheet.student_id) }}" class="btn">Cancel</a>
+        <button onclick="saveWorksheet()" class="btn btn-success">💾 Save Changes</button>
+        <a href="{{ url_for('worksheet.finalize_worksheet', worksheet_id=worksheet.id) }}" 
+           class="btn btn-warning" style="font-size: 1.1em; padding: 15px 30px;">
+            📄 Generate PDF
+        </a>
+    </div>
+</div>
+
+<script>
+function saveWorksheet() {
+    document.getElementById('worksheet_form').submit();
+}
+</script>
+{% endblock %}

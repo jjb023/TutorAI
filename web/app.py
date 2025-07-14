@@ -59,6 +59,7 @@ def create_app(config_name='default'):
     from tutor import tutor_bp
     from session import session_bp
     from topic import topic_bp
+    from worksheet import worksheet_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -66,6 +67,7 @@ def create_app(config_name='default'):
     app.register_blueprint(tutor_bp)
     app.register_blueprint(session_bp)
     app.register_blueprint(topic_bp)
+    app.register_blueprint(worksheet_bp)
     
     return app
 

@@ -47,6 +47,11 @@
                         {% if subtopic.description %}
                         <p style="color: #666; margin: 5px 0;">{{ subtopic.description }}</p>
                         {% endif %}
+                        <a href="{{ url_for('worksheet.question_bank', subtopic_id=subtopic.id) }}" 
+                        class="btn" style="background: #2E8B57; color: white;">
+                        📝 Question Bank
+                     </a>
+
                     </div>
                     {% if current_user.username == 'admin' %}
                     <div style="display: flex; gap: 10px;">

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}View Worksheet{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>📄 {{ worksheet.title }}</h1>
+        <div>
+            {% if worksheet.pdf_path %}
+            <a href="{{ url_for('worksheet.download_worksheet', worksheet_id=worksheet.id) }}" 
+               class="btn btn-success">⬇️ Download PDF</a>
+            {% else %}
+            <a href="{{ url_for('worksheet.finalize_worksheet', worksheet_id=worksheet.id) }}" 
+               class="btn btn-warning">📄 Generate PDF</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="student-card" style="margin-bottom: 30px;">
+        <p><strong>Student:</strong> {{ worksheet.student_name }}</p>
+        <p><strong>Topic:</strong> {{ worksheet.topic_name }} - {{ worksheet.subtopic_name }}</p>
+        <p><strong>Generated:</strong> {{ worksheet.generated_date }}</p>
+        <p><strong>Status:</strong> 
+            {% if worksheet.status == 'finalized' %}
+            <span style="color: #27ae60;">✅ Finalized</span>
+            {% else %}
+            <span style="color: #f39c12;">📝 Draft</span>
+            {% endif %}
+        </p>
+    </div>
+    
+    <div class="worksheet-preview" style="background: white; padding: 40px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="text-align: center; margin-bottom: 30px;">{{ worksheet.title }}</h2>
+        <p style="text-align: center; color: #666;">Student: {{ worksheet.student_name }} | Date: _____________</p>
+        
+        <div style="margin-top: 40px;">
+            {% for question in questions %}
+            <div style="margin: 30px 0;">
+                <p><strong>{{ question.question_order }}.</strong> 
+                   {{ question.custom_question_text or question.original_text }}</p>
+                
+                {% if question.space_allocated == 'none' %}
+                <p style="margin-top: 10px;">Answer: _______________________</p>
+                {% elif question.space_allocated == 'small' %}
+                <div style="margin-top: 10px;">
+                    <p>_________________________________________________</p>
+                    <p>_________________________________________________</p>
+                </div>
+                {% elif question.space_allocated == 'medium' %}
+                <div style="margin-top: 10px;">
+                    {% for i in range(5) %}
+                    <p>_________________________________________________</p>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="margin-top: 10px;">
+                    {% for i in range(10) %}
+                    <p>_________________________________________________</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="nav-links">
+        <a href="{{ url_for('student.student_detail', student_id=worksheet.student_id) }}">
+            📊 Back to Student
+        </a>
+        <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
+    </div>
+</div>
+{% endblock %}

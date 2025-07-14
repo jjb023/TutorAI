@@ -192,7 +192,7 @@ python app.py
 | 17.06.25 | 2 | Topics + subtopic integration |
 | 27.06.25 | 1.5 | Migrating databases + adding worksheets |
 | 08.07.25 | 1.5 | System Health checks and worksheet prep | 
-| 14.07.25 | 3.5 | Worksheet generation + subtopic question bank implementation|
+| 14.07.25 | 4 | Worksheet generation + subtopic question bank implementation|
 
 
 

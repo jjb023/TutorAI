@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Worksheet{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>📄 Generate Worksheet</h1>
+    
+    <div class="info-cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+        <div class="student-card">
+            <h3>Student: {{ student.name }}</h3>
+            <p>Age: {{ student.age }} | Year: {{ student.year_group }}</p>
+        </div>
+        <div class="student-card">
+            <h3>Topic: {{ subtopic.subtopic_name }}</h3>
+            <p>Recommended Level: <strong>{{ recommended_level|title }}</strong></p>
+        </div>
+    </div>
+    
+    <!-- Question availability warning -->
+    <div class="alert-info" style="padding: 15px; margin: 20px 0; border-radius: 8px; background: #e3f2fd;">
+        <h4>Available Questions:</h4>
+        <p>Easy: {{ stats.easy.count }} | Medium: {{ stats.medium.count }} | Hard: {{ stats.hard.count }}</p>
+        {% if stats.easy.count < 10 or stats.medium.count < 10 or stats.hard.count < 5 %}
+        <p style="color: #e74c3c;">⚠️ You may need more questions in the bank for a full worksheet!</p>
+        {% endif %}
+    </div>
+    
+    <form method="POST" action="{{ url_for('worksheet.create_worksheet') }}">
+        <input type="hidden" name="student_id" value="{{ student.id }}">
+        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+        
+        <div class="form-group">
+            <label for="title">Worksheet Title</label>
+            <input type="text" id="title" name="title" class="form-control"
+                   value="{{ subtopic.topic_name }} - {{ subtopic.subtopic_name }} Practice">
+        </div>
+        
+        <div class="form-group">
+            <label>Total Questions</label>
+            <input type="number" name="total_questions" class="form-control" 
+                   value="20" min="10" max="40">
+        </div>
+        
+        <div class="form-group">
+            <label>Difficulty Distribution</label>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                <div style="margin: 10px 0;">
+                    <label>🟢 Easy Questions: <span id="easy_display">{{ recommended_dist.easy }}%</span></label>
+                    <input type="range" name="easy_percentage" id="easy_slider"
+                           min="0" max="100" value="{{ recommended_dist.easy }}"
+                           oninput="updateDistribution()">
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>🟡 Medium Questions: <span id="medium_display">{{ recommended_dist.medium }}%</span></label>
+                    <input type="range" name="medium_percentage" id="medium_slider"
+                           min="0" max="100" value="{{ recommended_dist.medium }}"
+                           oninput="updateDistribution()">
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>🔴 Hard Questions: <span id="hard_display">{{ recommended_dist.hard }}%</span></label>
+                    <input type="range" name="hard_percentage" id="hard_slider"
+                           min="0" max="100" value="{{ recommended_dist.hard }}"
+                           oninput="updateDistribution()">
+                </div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <strong>Total: <span id="total_display">100</span>%</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_for('student.student_detail', student_id=student.id) }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-success" style="font-size: 1.2em; padding: 15px 40px;">
+                🚀 Generate Worksheet
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateDistribution() {
+    const easy = parseInt(document.getElementById('easy_slider').value);
+    const medium = parseInt(document.getElementById('medium_slider').value);
+    const hard = parseInt(document.getElementById('hard_slider').value);
+    
+    document.getElementById('easy_display').textContent = easy + '%';
+    document.getElementById('medium_display').textContent = medium + '%';
+    document.getElementById('hard_display').textContent = hard + '%';
+    
+    const total = easy + medium + hard;
+    document.getElementById('total_display').textContent = total;
+    
+    if (total !== 100) {
+        document.getElementById('total_display').style.color = '#e74c3c';
+    } else {
+        document.getElementById('total_display').style.color = '#27ae60';
+    }
+}
+</script>
+{% endblock %}

@@ -82,6 +82,25 @@ Tutor AI provides a comprehensive platform that:
 - **Database Migrations**: Seamless upgrades without data loss
 - **Security**: Flask-Login integration with session management
 
+### Database Schema
+
+<details>
+<summary>Click to view ERD</summary>
+
+```mermaid
+erDiagram
+    STUDENTS ||--o{ SESSIONS : has
+    STUDENTS ||--o{ SUBTOPIC_PROGRESS : tracks
+    TUTORS ||--o{ SESSIONS : conducts
+    MAIN_TOPICS ||--o{ SUBTOPICS : contains
+    SUBTOPICS ||--o{ SUBTOPIC_PROGRESS : assessed_in
+    SUBTOPICS ||--o{ QUESTIONS : has
+    WORKSHEETS ||--o{ WORKSHEET_QUESTIONS : contains
+    QUESTIONS ||--o{ WORKSHEET_QUESTIONS : included_in
+```
+
+</details>
+
 ---
 
 ## Architecture
@@ -118,24 +137,7 @@ tutor-ai/
 └── 📄 README.md              # This file
 ```
 
-### Database Schema
 
-<details>
-<summary>Click to view ERD</summary>
-
-```mermaid
-erDiagram
-    STUDENTS ||--o{ SESSIONS : has
-    STUDENTS ||--o{ SUBTOPIC_PROGRESS : tracks
-    TUTORS ||--o{ SESSIONS : conducts
-    MAIN_TOPICS ||--o{ SUBTOPICS : contains
-    SUBTOPICS ||--o{ SUBTOPIC_PROGRESS : assessed_in
-    SUBTOPICS ||--o{ QUESTIONS : has
-    WORKSHEETS ||--o{ WORKSHEET_QUESTIONS : contains
-    QUESTIONS ||--o{ WORKSHEET_QUESTIONS : included_in
-```
-
-</details>
 
 ---
 

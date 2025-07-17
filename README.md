@@ -11,7 +11,7 @@
 
 **A comprehensive web-based tutoring management system designed to track student progress, identify learning patterns, and generate personalized worksheets using AI.**
 
-[Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Architecture](#-architecture) • [Roadmap](#-roadmap) • [Contributing](#-contributing)
+[Features](#-features) • [Architecture](#-architecture) • [Roadmap](#-roadmap)
 
 </div>
 
@@ -83,34 +83,6 @@ Tutor AI provides a comprehensive platform that:
 - **Security**: Flask-Login integration with session management
 
 ---
-
-## Demo
-
-### Screenshots
-
-<div align="center">
-<table>
-  <tr>
-    <td align="center">
-      <img src="docs/images/dashboard.png" width="300" alt="Dashboard"/>
-      <br />
-      <em>Dashboard Overview</em>
-    </td>
-    <td align="center">
-      <img src="docs/images/session-entry.png" width="300" alt="Session Entry"/>
-      <br />
-      <em>Session Entry Form</em>
-    </td>
-    <td align="center">
-      <img src="docs/images/student-progress.png" width="300" alt="Student Progress"/>
-      <br />
-      <em>Progress Visualization</em>
-    </td>
-  </tr>
-</table>
-</div>
-
-
 
 ## Architecture
 

@@ -48,15 +48,17 @@
                         <p style="color: #666; margin: 5px 0;">{{ subtopic.description }}</p>
                         {% endif %}
                         <a href="{{ url_for('worksheet.question_bank', subtopic_id=subtopic.id) }}" 
-                        class="btn" style="background: #2E8B57; color: white;">
-                        📝 Question Bank
-                     </a>
-
+                           class="btn" style="background: #2E8B57; color: white; margin-top: 10px;">
+                            📝 Question Bank
+                        </a>
                     </div>
                     {% if current_user.username == 'admin' %}
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-warning" onclick="alert('Edit subtopic feature coming soon!')">✏️ Edit</button>
-                        <form method="POST" action="{{ url_for('topic.delete_subtopic', topic_id=topic.id, subtopic_id=subtopic.id) }}" style="display: inline;" onsubmit="return confirm('Delete {{ subtopic.subtopic_name }}? This will also delete all student progress for this subtopic.')">
+                        <a href="{{ url_for('topic.edit_subtopic', topic_id=topic.id, subtopic_id=subtopic.id) }}" 
+                           class="btn btn-warning">✏️ Edit</a>
+                        <form method="POST" action="{{ url_for('topic.delete_subtopic', topic_id=topic.id, subtopic_id=subtopic.id) }}" 
+                              style="display: inline;" 
+                              onsubmit="return confirm('Delete {{ subtopic.subtopic_name }}? This will also delete all student progress for this subtopic.')">
                             <button type="submit" class="btn btn-danger">🗑️ Delete</button>
                         </form>
                     </div>

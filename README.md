@@ -1,5 +1,234 @@
 # TutorAI
 
+# 🎯 Tutor AI - Intelligent Student Progress Tracking System
+
+<div align="center">
+
+![Python](https://img.shields.io/badge/python-v3.11+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)
+![SQLite](https://img.shields.io/badge/SQLite-3-lightgrey.svg)
+![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen.svg)
+
+**A comprehensive web-based tutoring management system designed to track student progress, identify learning patterns, and generate personalized worksheets using AI.**
+
+[Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Architecture](#-architecture) • [Roadmap](#-roadmap) • [Contributing](#-contributing)
+
+</div>
+
+---
+
+## Overview
+
+Tutor AI is a full-stack web application that revolutionizes how private tutors manage their students' learning journey. Built with a focus on UK curriculum mathematics (adaptable to other subjects), it provides intelligent insights into student performance and automates worksheet generation based on individual learning needs.
+
+### Problem Statement
+
+Private tutors often struggle with:
+- **Tracking Progress**: No centralized system to monitor student performance over time
+- **Identifying Patterns**: Difficulty spotting trends in topic mastery across multiple students
+- **Session Planning**: Time-consuming preparation for personalized lesson content
+- **Parent Communication**: Lack of professional progress reporting tools
+
+### Solution
+
+Tutor AI provides a comprehensive platform that:
+- Tracks detailed progress with a 1-10 mastery scale for each subtopic
+- Visualizes learning trends with intuitive dashboards
+- Generates AI-powered worksheets tailored to individual weaknesses
+- Supports multiple tutors with role-based access control
+- Offers mobile-responsive design for on-the-go session logging
+
+---
+
+## Features
+
+### Core Functionality
+
+- **Student Management**
+  - Comprehensive student profiles with contact information
+  - Progress tracking across all curriculum topics
+  - Session history and attendance records
+  - Visual progress indicators and mastery levels
+
+- **Hierarchical Curriculum Structure**
+  - Main topics → Subtopics organization
+  - Customizable difficulty levels
+  - UK curriculum-aligned content (expandable to other curricula)
+  - Color-coded topic visualization
+
+- **Smart Session Recording**
+  - Touch-optimized mastery level sliders (1-10 scale)
+  - Real-time progress updates
+  - Session notes and observations
+  - Multi-topic assessment in single session
+
+- **Multi-Tutor Support**
+  - Secure authentication system
+  - Role-based permissions (Admin/Tutor)
+  - Individual tutor dashboards
+  - Session attribution and tracking
+
+- **Intelligent Worksheet Generation** *(In Development)*
+  - AI-powered question generation
+  - Difficulty-based question selection
+  - PDF export with customizable layouts
+  - Progress-aware content targeting
+
+### Technical Highlights
+
+- **Responsive Design**: Mobile-first approach with touch-optimized controls
+- **Modern UI/UX**: Clean, intuitive interface with customizable themes
+- **RESTful Architecture**: Modular blueprint structure for scalability
+- **Database Migrations**: Seamless upgrades without data loss
+- **Security**: Flask-Login integration with session management
+
+---
+
+## Demo
+
+### Screenshots
+
+<div align="center">
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/images/dashboard.png" width="300" alt="Dashboard"/>
+      <br />
+      <em>Dashboard Overview</em>
+    </td>
+    <td align="center">
+      <img src="docs/images/session-entry.png" width="300" alt="Session Entry"/>
+      <br />
+      <em>Session Entry Form</em>
+    </td>
+    <td align="center">
+      <img src="docs/images/student-progress.png" width="300" alt="Student Progress"/>
+      <br />
+      <em>Progress Visualization</em>
+    </td>
+  </tr>
+</table>
+</div>
+
+
+
+## Architecture
+
+### Technology Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | HTML5, CSS3, JavaScript | Responsive UI with modern design |
+| **Backend** | Flask 2.0+ | RESTful API and server-side logic |
+| **Database** | SQLite | Lightweight, portable data storage |
+| **Authentication** | Flask-Login | Secure user session management |
+| **PDF Generation** | ReportLab | Professional worksheet creation |
+| **AI Integration** | OpenAI API *(planned)* | Dynamic question generation |
+
+### Project Structure
+
+```
+tutor-ai/
+├── 📁 data/                    # SQLite database
+│   └── tutor_ai.db
+├── 📁 web/                     # Flask application
+│   ├── 📁 auth/               # Authentication blueprint
+│   ├── 📁 student/            # Student management
+│   ├── 📁 tutor/              # Tutor management
+│   ├── 📁 session/            # Session recording
+│   ├── 📁 topic/              # Curriculum management
+│   ├── 📁 worksheet/          # Worksheet generation
+│   ├── 📁 static/             # CSS, JS, images
+│   ├── 📁 templates/          # Jinja2 templates
+│   └── app.py                 # Application entry point
+├── 📄 database.py             # Database models and setup
+├── 📄 requirements.txt        # Python dependencies
+└── 📄 README.md              # This file
+```
+
+### Database Schema
+
+<details>
+<summary>Click to view ERD</summary>
+
+```mermaid
+erDiagram
+    STUDENTS ||--o{ SESSIONS : has
+    STUDENTS ||--o{ SUBTOPIC_PROGRESS : tracks
+    TUTORS ||--o{ SESSIONS : conducts
+    MAIN_TOPICS ||--o{ SUBTOPICS : contains
+    SUBTOPICS ||--o{ SUBTOPIC_PROGRESS : assessed_in
+    SUBTOPICS ||--o{ QUESTIONS : has
+    WORKSHEETS ||--o{ WORKSHEET_QUESTIONS : contains
+    QUESTIONS ||--o{ WORKSHEET_QUESTIONS : included_in
+```
+
+</details>
+
+---
+
+## Roadmap
+
+### Completed Features
+
+- [x] Multi-tutor authentication system
+- [x] Comprehensive student management
+- [x] Hierarchical topic structure
+- [x] Touch-optimized progress tracking
+- [x] Responsive web interface
+- [x] Session recording with notes
+- [x] Progress visualization
+- [x] Database migration tools
+
+### In Development
+
+- [ ] Question bank population
+- [ ] PDF worksheet generation
+- [ ] AI integration for questions
+- [ ] Performance optimizations
+
+### Future Enhancements
+
+- [ ] **Analytics Dashboard**
+  - Learning velocity tracking
+  - Predictive progress modeling
+  - Comparative student analysis
+  
+- [ ] **Parent Portal**
+  - Progress report generation
+  - Automated email notifications
+  - Homework tracking
+  
+- [ ] **Mobile Applications**
+  - Native iOS/Android apps
+  - Offline mode support
+  - Camera integration for worksheet scanning
+
+- [ ] **Advanced Features**
+  - Video session recording
+  - Real-time collaboration tools
+  - Integration with popular LMS platforms
+
+---
+
+## Testing
+
+Run the test suite:
+```bash
+python test_core_features.py
+python health_check.py
+```
+
+---
+
+
+## 📬 Contact
+
+**Josh Beal** - [joshbeal023@gmail.com](mailto:your.joshbeal023@gmail.com)
+
+---
+
+
 # Tutor AI – Personalised Progress Tracker for Tutors
 
 A lightweight tool built for private tutors to track student progress in 7+ UK school-level Maths, identify topic strengths/weaknesses, and automatically generate personalised worksheets for upcoming sessions using AI.
@@ -194,7 +423,7 @@ python app.py
 | 08.07.25 | 1.5 | System Health checks and worksheet prep | 
 | 14.07.25 | 4 | Worksheet generation + subtopic question bank implementation |
 | 16.07.25 | 3 | Question population and worksheet |
-| 17.07.25 | 2 | Database entry errors and answers bug fixing |
+| 17.07.25 | 3 | Database entry errors and answers bug fixing |
 
 
 

@@ -1,3 +1,4 @@
+# web/topic/routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .services import TopicService
@@ -51,22 +52,6 @@ def add_topic():
             flash(f'Error adding topic: {e}', 'error')
     
     return render_template('topic/edit.html')
-
-@topic_bp.route('/<int:topic_id>/subtopic/<int:subtopic_id>/delete', methods=['POST'])
-@login_required
-def delete_subtopic(topic_id, subtopic_id):
-    """Delete a subtopic (admin only)."""
-    if current_user.username != 'admin':
-        flash('Admin access required.', 'error')
-        return redirect(url_for('topic.topic_detail', topic_id=topic_id))
-    
-    try:
-        TopicService.delete_subtopic(subtopic_id)
-        flash('Subtopic deleted successfully!', 'success')
-    except Exception as e:
-        flash(f'Error deleting subtopic: {e}', 'error')
-    
-    return redirect(url_for('topic.topic_detail', topic_id=topic_id))
 
 @topic_bp.route('/<int:topic_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -146,3 +131,52 @@ def add_subtopic(topic_id):
             flash(f'Error adding subtopic: {e}', 'error')
     
     return render_template('topic/subtopic_edit.html', topic=topic)
+
+@topic_bp.route('/<int:topic_id>/subtopic/<int:subtopic_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_subtopic(topic_id, subtopic_id):
+    """Edit a subtopic (admin only)."""
+    if current_user.username != 'admin':
+        flash('Admin access required.', 'error')
+        return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+    
+    topic = TopicService.get_main_topic(topic_id)
+    subtopic = TopicService.get_subtopic(subtopic_id)
+    
+    if not topic or not subtopic:
+        flash('Topic or subtopic not found!', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    if request.method == 'POST':
+        subtopic_name = request.form.get('subtopic_name', '').strip()
+        description = request.form.get('description', '').strip() or None
+        difficulty_order = request.form.get('difficulty_order', type=int) or 1
+        
+        if not subtopic_name:
+            flash('Subtopic name is required!', 'error')
+            return render_template('topic/subtopic_edit.html', topic=topic, subtopic=subtopic)
+        
+        try:
+            TopicService.update_subtopic(subtopic_id, subtopic_name, description, difficulty_order)
+            flash(f'Subtopic {subtopic_name} updated successfully!', 'success')
+            return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+        except Exception as e:
+            flash(f'Error updating subtopic: {e}', 'error')
+    
+    return render_template('topic/subtopic_edit.html', topic=topic, subtopic=subtopic)
+
+@topic_bp.route('/<int:topic_id>/subtopic/<int:subtopic_id>/delete', methods=['POST'])
+@login_required
+def delete_subtopic(topic_id, subtopic_id):
+    """Delete a subtopic (admin only)."""
+    if current_user.username != 'admin':
+        flash('Admin access required.', 'error')
+        return redirect(url_for('topic.topic_detail', topic_id=topic_id))
+    
+    try:
+        TopicService.delete_subtopic(subtopic_id)
+        flash('Subtopic deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting subtopic: {e}', 'error')
+    
+    return redirect(url_for('topic.topic_detail', topic_id=topic_id))

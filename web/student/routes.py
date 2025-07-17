@@ -10,7 +10,9 @@ student_bp = Blueprint('student', __name__, url_prefix='/students')
 @student_bp.route('/')
 @login_required
 def list_students():
-    """Show all students with progress indicators."""
+    """Show all students with or without management options."""
+    view_only = request.args.get('view_only', 'false').lower() == 'true'
+    
     try:
         students = StudentService.get_all_students()
         
@@ -35,11 +37,13 @@ def list_students():
                 'topics_assessed': topics_assessed
             })
         
-        return render_template('student/list.html', students=students_with_progress)
+        return render_template('student/list.html', 
+                             students=students_with_progress,
+                             view_only=view_only)
     
     except Exception as e:
         flash(f'Error loading students: {str(e)}', 'error')
-        return render_template('student/list.html', students=[])
+        return render_template('student/list.html', students=[], view_only=view_only)
 
 @student_bp.route('/<int:student_id>')
 @login_required

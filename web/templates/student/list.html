@@ -4,18 +4,22 @@
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1>📚 All Students</h1>
+    <h1>📚 {% if view_only %}All Students{% else %}Manage Students{% endif %}</h1>
+    {% if not view_only %}
     <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add New Student</a>
+    {% endif %}
 </div>
 
 {% if not students %}
     <div class="welcome-message">
         <p>No students in database yet.</p>
+        {% if not view_only %}
         <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add your first student</a>
+        {% endif %}
     </div>
 {% else %}
     <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
-        Managing <strong>{{ students|length }}</strong> students
+        {% if view_only %}Viewing{% else %}Managing{% endif %} <strong>{{ students|length }}</strong> students
     </p>
     
     <div class="student-grid">
@@ -54,22 +58,28 @@
             
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
                 <a href="{{ url_for('student.student_detail', student_id=student.id) }}" class="btn" style="flex: 1; min-width: 120px; text-align: center;">📊 View Progress</a>
+                {% if not view_only %}
                 <a href="{{ url_for('session.entry') }}?student_id={{ student.id }}" class="btn btn-success" style="flex: 1; min-width: 120px; text-align: center;">⚡ New Session</a>
+                {% endif %}
             </div>
+            {% if not view_only %}
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                 <a href="{{ url_for('student.edit_student', student_id=student.id) }}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
                 <form method="POST" action="{{ url_for('student.delete_student', student_id=student.id) }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete {{ student.name }}? This will delete all progress data.')">
                     <button type="submit" class="btn btn-danger" style="width: 100%; text-align: center;">🗑️ Delete</button>
                 </form>
             </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
 {% endif %}
 
 <div class="nav-links">
+    {% if not view_only %}
     <a href="{{ url_for('student.add_student') }}" class="btn btn-success">➕ Add New Student</a>
     <a href="{{ url_for('topic.list_topics') }}" class="btn">📚 Manage Topics</a>
+    {% endif %}
     <a href="{{ url_for('main.dashboard') }}">🏠 Back to Dashboard</a>
 </div>
 {% endblock %}

@@ -7,9 +7,11 @@ tutor_bp = Blueprint('tutor', __name__, url_prefix='/tutors')
 @tutor_bp.route('/')
 @login_required
 def list_tutors():
-    """Show all tutors"""
+    """Show all tutors with or without management options."""
+    view_only = request.args.get('view_only', 'false').lower() == 'true'
+    
     tutors = TutorService.get_all_tutors()
-    return render_template('tutor/list.html', tutors=tutors)
+    return render_template('tutor/list.html', tutors=tutors, view_only=view_only)
 
 @tutor_bp.route('/<int:tutor_id>')
 @login_required

@@ -7,9 +7,11 @@ topic_bp = Blueprint('topic', __name__, url_prefix='/topics')
 @topic_bp.route('/')
 @login_required
 def list_topics():
-    """Show all main topics."""
+    """Show all main topics with or without management options."""
+    view_only = request.args.get('view_only', 'false').lower() == 'true'
+    
     topics = TopicService.get_all_main_topics()
-    return render_template('topic/list.html', topics=topics)
+    return render_template('topic/list.html', topics=topics, view_only=view_only)
 
 @topic_bp.route('/<int:topic_id>')
 @login_required

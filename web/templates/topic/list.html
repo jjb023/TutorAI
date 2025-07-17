@@ -4,8 +4,8 @@
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1>📚 Curriculum Topics</h1>
-    {% if current_user.username == 'admin' %}
+    <h1>📚 {% if view_only %}All Topics{% else %}Manage Topics{% endif %}</h1>
+    {% if not view_only and current_user.username == 'admin' %}
     <a href="{{ url_for('topic.add_topic') }}" class="btn btn-success">➕ Add New Topic</a>
     {% endif %}
 </div>
@@ -13,13 +13,13 @@
 {% if not topics %}
     <div class="welcome-message">
         <p>No topics in the curriculum yet.</p>
-        {% if current_user.username == 'admin' %}
+        {% if not view_only and current_user.username == 'admin' %}
         <a href="{{ url_for('topic.add_topic') }}" class="btn btn-success">➕ Add your first topic</a>
         {% endif %}
     </div>
 {% else %}
     <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
-        Managing <strong>{{ topics|length }}</strong> main topics
+        {% if view_only %}Viewing{% else %}Managing{% endif %} <strong>{{ topics|length }}</strong> main topics
     </p>
     
     <div class="student-grid">
@@ -38,12 +38,12 @@
             
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
                 <a href="{{ url_for('topic.topic_detail', topic_id=topic.id) }}" class="btn" style="flex: 1; text-align: center;">📊 View Subtopics</a>
-                {% if current_user.username == 'admin' %}
+                {% if not view_only and current_user.username == 'admin' %}
                 <a href="{{ url_for('topic.edit_topic', topic_id=topic.id) }}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
                 {% endif %}
             </div>
             
-            {% if current_user.username == 'admin' %}
+            {% if not view_only and current_user.username == 'admin' %}
             <div style="margin-top: 8px;">
                 <form method="POST" action="{{ url_for('topic.delete_topic', topic_id=topic.id) }}" onsubmit="return confirm('Are you sure? This will delete all subtopics and student progress for {{ topic.topic_name }}!')">
                     <button type="submit" class="btn btn-danger" style="width: 100%; text-align: center;">🗑️ Delete Topic</button>
@@ -56,7 +56,7 @@
 {% endif %}
 
 <div class="nav-links">
-    {% if current_user.username == 'admin' %}
+    {% if not view_only and current_user.username == 'admin' %}
     <a href="{{ url_for('topic.add_topic') }}" class="btn btn-success">➕ Add New Topic</a>
     {% endif %}
     <a href="{{ url_for('main.dashboard') }}">🏠 Back to Dashboard</a>

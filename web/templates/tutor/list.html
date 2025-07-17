@@ -4,8 +4,8 @@
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1>👥 All Tutors</h1>
-    {% if current_user.username == 'admin' %}
+    <h1>👥 {% if view_only %}All Tutors{% else %}Manage Tutors{% endif %}</h1>
+    {% if not view_only and current_user.username == 'admin' %}
     <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-success">➕ Add New Tutor</a>
     {% endif %}
 </div>
@@ -13,13 +13,13 @@
 {% if not tutors %}
     <div class="welcome-message">
         <p>No tutors in database yet.</p>
-        {% if current_user.username == 'admin' %}
+        {% if not view_only and current_user.username == 'admin' %}
         <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-success">➕ Add your first tutor</a>
         {% endif %}
     </div>
 {% else %}
     <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
-        Managing <strong>{{ tutors|length }}</strong> tutors
+        {% if view_only %}Viewing{% else %}Managing{% endif %} <strong>{{ tutors|length }}</strong> tutors
     </p>
     
     <div class="student-grid">
@@ -45,7 +45,7 @@
                 </p>
             </div>
             
-            {% if current_user.username == 'admin' %}
+            {% if not view_only and current_user.username == 'admin' %}
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
                 <a href="{{ url_for('tutor.tutor_detail', tutor_id=tutor.id) }}" class="btn" style="flex: 1; text-align: center;">📊 Details</a>
                 <a href="{{ url_for('tutor.edit_tutor', tutor_id=tutor.id) }}" class="btn btn-warning" style="flex: 1; text-align: center;">✏️ Edit</a>
@@ -64,7 +64,7 @@
 {% endif %}
 
 <div class="nav-links">
-    {% if current_user.username == 'admin' %}
+    {% if not view_only and current_user.username == 'admin' %}
     <a href="{{ url_for('tutor.add_tutor') }}" class="btn btn-success">➕ Add New Tutor</a>
     {% endif %}
     <a href="{{ url_for('main.dashboard') }}">🏠 Back to Dashboard</a>

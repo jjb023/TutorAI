@@ -43,16 +43,28 @@
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
                         <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                        {% if question.answer %}
+                        <details style="margin: 10px 0;">
+                            <summary style="cursor: pointer; color: #607EBC;">Show Answer</summary>
+                            <p style="background: #f8f9fa; padding: 10px; margin-top: 5px; border-radius: 5px;">
+                                {{ question.answer }}
+                            </p>
+                        </details>
+                        {% endif %}
                         <small style="color: #666;">
                             Time: {{ question.time_estimate_minutes }} min | 
                             Space: {{ question.space_required }}
+                            {% if question.question_type %} | Type: {{ question.question_type }}{% endif %}
                         </small>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-warning" style="padding: 5px 10px;" 
-                                onclick="editQuestion({{ question.id }})">✏️</button>
-                        <button class="btn btn-danger" style="padding: 5px 10px;" 
-                                onclick="deleteQuestion({{ question.id }})">🗑️</button>
+                        <a href="{{ url_for('worksheet.edit_question', question_id=question.id) }}" 
+                           class="btn btn-warning" style="padding: 5px 10px;">✏️</a>
+                        <form method="POST" action="{{ url_for('worksheet.delete_question', question_id=question.id) }}" 
+                              style="display: inline;" 
+                              onsubmit="return confirm('Are you sure you want to delete this question?');">
+                            <button type="submit" class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -71,14 +83,28 @@
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
                         <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                        {% if question.answer %}
+                        <details style="margin: 10px 0;">
+                            <summary style="cursor: pointer; color: #607EBC;">Show Answer</summary>
+                            <p style="background: #f8f9fa; padding: 10px; margin-top: 5px; border-radius: 5px;">
+                                {{ question.answer }}
+                            </p>
+                        </details>
+                        {% endif %}
                         <small style="color: #666;">
                             Time: {{ question.time_estimate_minutes }} min | 
                             Space: {{ question.space_required }}
+                            {% if question.question_type %} | Type: {{ question.question_type }}{% endif %}
                         </small>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-warning" style="padding: 5px 10px;">✏️</button>
-                        <button class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                        <a href="{{ url_for('worksheet.edit_question', question_id=question.id) }}" 
+                           class="btn btn-warning" style="padding: 5px 10px;">✏️</a>
+                        <form method="POST" action="{{ url_for('worksheet.delete_question', question_id=question.id) }}" 
+                              style="display: inline;" 
+                              onsubmit="return confirm('Are you sure you want to delete this question?');">
+                            <button type="submit" class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -97,14 +123,28 @@
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
                         <p><strong>Q{{ loop.index }}:</strong> {{ question.question_text }}</p>
+                        {% if question.answer %}
+                        <details style="margin: 10px 0;">
+                            <summary style="cursor: pointer; color: #607EBC;">Show Answer</summary>
+                            <p style="background: #f8f9fa; padding: 10px; margin-top: 5px; border-radius: 5px;">
+                                {{ question.answer }}
+                            </p>
+                        </details>
+                        {% endif %}
                         <small style="color: #666;">
                             Time: {{ question.time_estimate_minutes }} min | 
                             Space: {{ question.space_required }}
+                            {% if question.question_type %} | Type: {{ question.question_type }}{% endif %}
                         </small>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-warning" style="padding: 5px 10px;">✏️</button>
-                        <button class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                        <a href="{{ url_for('worksheet.edit_question', question_id=question.id) }}" 
+                           class="btn btn-warning" style="padding: 5px 10px;">✏️</a>
+                        <form method="POST" action="{{ url_for('worksheet.delete_question', question_id=question.id) }}" 
+                              style="display: inline;" 
+                              onsubmit="return confirm('Are you sure you want to delete this question?');">
+                            <button type="submit" class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -127,6 +167,14 @@
     margin: 10px 0;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+details summary {
+    outline: none;
+}
+
+details[open] summary {
+    margin-bottom: 10px;
 }
 </style>
 {% endblock %}

@@ -15,6 +15,13 @@
         </div>
         
         <div class="form-group">
+            <label for="answer">Answer (Optional)</label>
+            <textarea id="answer" name="answer" class="form-control" 
+                      rows="3" placeholder="Enter the answer or solution (optional for tutor reference)">{{ question.answer if question and question.answer else '' }}</textarea>
+            <small style="color: #666;">This answer is for tutor reference only and won't appear on student worksheets</small>
+        </div>
+        
+        <div class="form-group">
             <label for="difficulty_level">Difficulty Level <span style="color: red;">*</span></label>
             <select id="difficulty_level" name="difficulty_level" class="form-control" required>
                 <option value="">Select difficulty...</option>
@@ -33,7 +40,8 @@
         <div class="form-group">
             <label for="time_estimate">Time Estimate (minutes)</label>
             <input type="number" id="time_estimate" name="time_estimate" class="form-control"
-                   min="1" max="20" value="{{ question.time_estimate_minutes if question else '' }}">
+                   min="1" max="20" value="{{ question.time_estimate_minutes if question else '' }}"
+                   placeholder="Estimated completion time">
         </div>
         
         <div class="form-group">
@@ -68,5 +76,11 @@
             </button>
         </div>
     </form>
+</div>
+
+<div class="nav-links">
+    <a href="{{ url_for('worksheet.question_bank', subtopic_id=subtopic.id) }}">📝 Back to Question Bank</a>
+    <a href="{{ url_for('topic.topic_detail', topic_id=subtopic.main_topic_id) }}">📖 Back to {{ subtopic.topic_name }}</a>
+    <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
 </div>
 {% endblock %}

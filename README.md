@@ -193,7 +193,8 @@ python app.py
 | 27.06.25 | 1.5 | Migrating databases + adding worksheets |
 | 08.07.25 | 1.5 | System Health checks and worksheet prep | 
 | 14.07.25 | 4 | Worksheet generation + subtopic question bank implementation |
-| 16.07.25 | 2 | Question population and worksheet |
+| 16.07.25 | 3 | Question population and worksheet |
+| 17.07.25 | 2 | Database entry errors and answers bug fixing |
 
 
 

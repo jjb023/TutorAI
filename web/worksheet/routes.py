@@ -1,3 +1,4 @@
+# web/worksheet/routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
 from .services import WorksheetService, QuestionService
@@ -42,6 +43,7 @@ def add_question(subtopic_id):
     
     if request.method == 'POST':
         question_text = request.form.get('question_text', '').strip()
+        answer = request.form.get('answer', '').strip() or None
         difficulty_level = request.form.get('difficulty_level', type=int)
         time_estimate = request.form.get('time_estimate', type=int)
         space_required = request.form.get('space_required')
@@ -54,7 +56,8 @@ def add_question(subtopic_id):
         try:
             QuestionService.create_question(
                 subtopic_id, question_text, difficulty_level,
-                time_estimate, space_required, current_user.id, question_type
+                time_estimate, space_required, current_user.id, 
+                question_type, answer
             )
             flash('Question added successfully!', 'success')
             return redirect(url_for('worksheet.question_bank', subtopic_id=subtopic_id))
@@ -62,6 +65,68 @@ def add_question(subtopic_id):
             flash(f'Error adding question: {e}', 'error')
     
     return render_template('worksheet/question_edit.html', subtopic=subtopic)
+
+@worksheet_bp.route('/questions/<int:question_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_question(question_id):
+    """Edit an existing question."""
+    question = QuestionService.get_question(question_id)
+    if not question:
+        flash('Question not found!', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    subtopic = TopicService.get_subtopic(question['subtopic_id'])
+    if not subtopic:
+        flash('Subtopic not found!', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    if request.method == 'POST':
+        question_text = request.form.get('question_text', '').strip()
+        answer = request.form.get('answer', '').strip() or None
+        difficulty_level = request.form.get('difficulty_level', type=int)
+        time_estimate = request.form.get('time_estimate', type=int)
+        space_required = request.form.get('space_required')
+        question_type = request.form.get('question_type', '').strip() or None
+        
+        if not question_text or not difficulty_level:
+            flash('Question text and difficulty level are required!', 'error')
+            return render_template('worksheet/question_edit.html', 
+                                 subtopic=subtopic, 
+                                 question=question)
+        
+        try:
+            QuestionService.update_question(
+                question_id, question_text, answer,
+                difficulty_level, time_estimate, 
+                space_required, question_type
+            )
+            flash('Question updated successfully!', 'success')
+            return redirect(url_for('worksheet.question_bank', 
+                                  subtopic_id=question['subtopic_id']))
+        except Exception as e:
+            flash(f'Error updating question: {e}', 'error')
+    
+    return render_template('worksheet/question_edit.html', 
+                         subtopic=subtopic, 
+                         question=question)
+
+@worksheet_bp.route('/questions/<int:question_id>/delete', methods=['POST'])
+@login_required
+def delete_question(question_id):
+    """Delete a question."""
+    question = QuestionService.get_question(question_id)
+    if not question:
+        flash('Question not found!', 'error')
+        return redirect(url_for('topic.list_topics'))
+    
+    try:
+        QuestionService.delete_question(question_id)
+        flash('Question deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting question: {e}', 'error')
+    
+    return redirect(url_for('worksheet.question_bank', 
+                          subtopic_id=question['subtopic_id']))
 
 @worksheet_bp.route('/generate/<int:student_id>/<int:subtopic_id>')
 @login_required

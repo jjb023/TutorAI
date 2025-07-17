@@ -1,3 +1,4 @@
+# web/worksheet/services.py
 from utils.database import get_db_connection
 import json
 import random
@@ -6,16 +7,18 @@ from datetime import datetime
 class QuestionService:
     @staticmethod
     def create_question(subtopic_id, question_text, difficulty_level, 
-                       time_estimate, space_required, tutor_id, question_type=None):
-        """Add a new question to the bank."""
+                       time_estimate, space_required, tutor_id, 
+                       question_type=None, answer=None):
+        """Add a new question to the bank with optional answer."""
         with get_db_connection() as conn:
             cursor = conn.execute('''
                 INSERT INTO questions 
-                (subtopic_id, question_text, difficulty_level, time_estimate_minutes, 
-                 space_required, question_type, created_by_tutor_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (subtopic_id, question_text, difficulty_level, time_estimate, 
-                  space_required, question_type, tutor_id))
+                (subtopic_id, question_text, answer, difficulty_level, 
+                 time_estimate_minutes, space_required, question_type, 
+                 created_by_tutor_id, active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+            ''', (subtopic_id, question_text, answer, difficulty_level, 
+                  time_estimate, space_required, question_type, tutor_id))
             conn.commit()
             return cursor.lastrowid
     
@@ -39,8 +42,9 @@ class QuestionService:
             return [dict(q) for q in questions]
     
     @staticmethod
-    def update_question(question_id, question_text=None, difficulty_level=None, 
-                       time_estimate=None, space_required=None):
+    def update_question(question_id, question_text=None, answer=None,
+                       difficulty_level=None, time_estimate=None, 
+                       space_required=None, question_type=None):
         """Update an existing question."""
         with get_db_connection() as conn:
             updates = []
@@ -49,6 +53,9 @@ class QuestionService:
             if question_text is not None:
                 updates.append("question_text = ?")
                 params.append(question_text)
+            if answer is not None:
+                updates.append("answer = ?")
+                params.append(answer)
             if difficulty_level is not None:
                 updates.append("difficulty_level = ?")
                 params.append(difficulty_level)
@@ -58,12 +65,24 @@ class QuestionService:
             if space_required is not None:
                 updates.append("space_required = ?")
                 params.append(space_required)
+            if question_type is not None:
+                updates.append("question_type = ?")
+                params.append(question_type)
             
             if updates:
                 params.append(question_id)
                 query = f"UPDATE questions SET {', '.join(updates)} WHERE id = ?"
                 conn.execute(query, params)
                 conn.commit()
+    
+    @staticmethod
+    def get_question(question_id):
+        """Get a single question by ID."""
+        with get_db_connection() as conn:
+            question = conn.execute('''
+                SELECT * FROM questions WHERE id = ?
+            ''', (question_id,)).fetchone()
+            return dict(question) if question else None
     
     @staticmethod
     def delete_question(question_id):
@@ -86,11 +105,22 @@ class QuestionService:
                 GROUP BY difficulty_level
             ''', (subtopic_id,)).fetchall()
             
-            return {
-                'easy': next((s for s in stats if s['difficulty_level'] == 1), {'count': 0, 'avg_time': 0}),
-                'medium': next((s for s in stats if s['difficulty_level'] == 2), {'count': 0, 'avg_time': 0}),
-                'hard': next((s for s in stats if s['difficulty_level'] == 3), {'count': 0, 'avg_time': 0})
+            # Convert to dictionary format with default values
+            result = {
+                'easy': {'count': 0, 'avg_time': 0},
+                'medium': {'count': 0, 'avg_time': 0},
+                'hard': {'count': 0, 'avg_time': 0}
             }
+            
+            for stat in stats:
+                if stat['difficulty_level'] == 1:
+                    result['easy'] = {'count': stat['count'], 'avg_time': stat['avg_time'] or 0}
+                elif stat['difficulty_level'] == 2:
+                    result['medium'] = {'count': stat['count'], 'avg_time': stat['avg_time'] or 0}
+                elif stat['difficulty_level'] == 3:
+                    result['hard'] = {'count': stat['count'], 'avg_time': stat['avg_time'] or 0}
+            
+            return result
 
 
 class WorksheetService:
@@ -221,6 +251,7 @@ class WorksheetService:
                 SELECT 
                     wq.*,
                     q.question_text as original_text,
+                    q.answer,
                     q.difficulty_level,
                     q.time_estimate_minutes,
                     q.space_required

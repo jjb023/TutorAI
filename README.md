@@ -361,7 +361,9 @@ Many tutors lack a structured system to:
 | 08.07.25 | 1.5 | System Health checks and worksheet prep | 
 | 14.07.25 | 4 | Worksheet generation + subtopic question bank implementation |
 | 16.07.25 | 3 | Question population and worksheet |
-| 17.07.25 | 3 | Database entry errors and answers bug fixing |
+| 17.07.25 | 2.5 | Database entry errors and answers bug fixing |
+| 20.07.25 | 1.5 | Menu drop downs |
+
 
 
 

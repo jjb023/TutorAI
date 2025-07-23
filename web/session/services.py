@@ -104,7 +104,7 @@ class SessionService:
                 ORDER BY mt.topic_name
             ''', (student_id,)).fetchall()
             
-            # Get detailed subtopic progress
+            # detailed progress:
             detailed_progress = []
             for topic in topic_summaries:
                 subtopics = conn.execute('''
@@ -123,10 +123,23 @@ class SessionService:
                     ORDER BY s.difficulty_order
                 ''', (student_id, topic['id'])).fetchall()
                 
+                # Format the dates for each subtopic
+                formatted_subtopics = []
+                for subtopic in subtopics:
+                    subtopic_dict = dict(subtopic)
+                    if subtopic_dict['last_assessed']:
+                        try:
+                            from datetime import datetime
+                            dt = datetime.fromisoformat(subtopic_dict['last_assessed'].replace('T', ' '))
+                            subtopic_dict['last_assessed'] = dt.strftime('%d-%m-%y @ %H:%M')
+                        except:
+                            pass  # Keep original if parsing fails
+                    formatted_subtopics.append(subtopic_dict)
+                
                 detailed_progress.append({
                     'topic_name': topic['topic_name'],
                     'color_code': topic['color_code'],
-                    'subtopics': subtopics
+                    'subtopics': formatted_subtopics
                 })
             
             # Get weak areas (mastery level 3-6)
@@ -234,6 +247,16 @@ class SessionService:
             # For each session, get what subtopics were assessed
             sessions_with_progress = []
             for session in sessions:
+                # Format the date here
+                from datetime import datetime
+                try:
+                    # Parse the ISO format datetime
+                    dt = datetime.fromisoformat(session['session_date'].replace('T', ' '))
+                    formatted_date = dt.strftime('%d-%m-%y @ %H:%M')
+                except:
+                    # Fallback if parsing fails
+                    formatted_date = session['session_date']
+                
                 # This is approximate - in a real system, you'd track session-subtopic relationships
                 subtopics_assessed = conn.execute('''
                     SELECT 
@@ -247,6 +270,7 @@ class SessionService:
                 
                 sessions_with_progress.append({
                     **dict(session),
+                    'session_date': formatted_date,  # Use formatted date
                     'subtopics_assessed': subtopics_assessed
                 })
             

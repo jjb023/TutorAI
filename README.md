@@ -355,14 +355,18 @@ Many tutors lack a structured system to:
 | 28.05.25 | *4* | Code changes, readme changes, roadmap updates|
 | 29.05.25 | *6* | Local flask website successfully launched |
 | 02.06.25 | *3.5* | Added log in abilities for tutors |
-| 03.06.25 | 1.5 | File Restructure |
-| 17.06.25 | 2 | Topics + subtopic integration |
-| 27.06.25 | 1.5 | Migrating databases + adding worksheets |
-| 08.07.25 | 1.5 | System Health checks and worksheet prep | 
-| 14.07.25 | 4 | Worksheet generation + subtopic question bank implementation |
-| 16.07.25 | 3 | Question population and worksheet |
-| 17.07.25 | 2.5 | Database entry errors and answers bug fixing |
-| 20.07.25 | 1.5 | Menu drop downs |
+| 03.06.25 | *1.5* | File Restructure |
+| 17.06.25 | *2* | Topics + subtopic integration |
+| 27.06.25 | *1.5* | Migrating databases + adding worksheets |
+| 08.07.25 | *1.5* | System Health checks and worksheet prep | 
+| 14.07.25 | *4* | Worksheet generation + subtopic question bank implementation |
+| 16.07.25 | *3* | Question population and worksheet |
+| 17.07.25 | *2.5* | Database entry errors and answers bug fixing |
+| 21.07.25 | 1.5 | Menu drop downs |
+| 22.07.25 | 2.5 | Reformatting student progress |
+| 23.07.25 | 2 |  |
+| 22.07.25 |  |  |
+
 
 
 

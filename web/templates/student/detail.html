@@ -217,32 +217,78 @@
         <h2>📅 Recent Sessions</h2>
         
         {% for session in recent_sessions %}
-        <div class="student-card">
-            <div style="display: flex; justify-content: space-between;">
-                <div>
-                    <h4>{{ session.session_date }}</h4>
-                    <p><strong>Duration:</strong> {{ session.duration_minutes }} minutes</p>
-                    {% if session.topics_covered %}
-                    <p><strong>Topics:</strong> {{ session.topics_covered }}</p>
-                    {% endif %}
+        <div class="session-accordion" style="margin: 20px 0;">
+            <!-- Session Header (Clickable) -->
+            <div class="session-header" onclick="toggleSession('session_{{ loop.index }}')" 
+                style="background: #f8f9fa; padding: 20px; border-radius: 10px; 
+                        cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+                        border: 2px solid #ddd; transition: all 0.3s;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div>
+                        <h4 style="margin: 0;">{{ session.session_date }}</h4>
+                        <p style="margin: 5px 0 0 0; color: #666;">
+                            Duration: {{ session.duration_minutes }} minutes | 
+                            Tutor: {{ session.tutor_name }}
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 20px;">
                     {% if session.subtopics_assessed %}
-                    <p><strong>Subtopics Assessed:</strong> {{ session.subtopics_assessed|length }}</p>
-                    <ul style="margin: 10px 0;">
-                        {% for assessment in session.subtopics_assessed %}
-                        <li>{{ assessment.subtopic_name }}: {{ assessment.old_level }} → {{ assessment.new_level }}/10</li>
-                        {% endfor %}
-                    </ul>
+                    <span style="background: var(--primary-color); color: white; padding: 5px 15px; 
+                                border-radius: 20px; font-size: 0.9em;">
+                        {{ session.subtopics_assessed|length }} topics assessed
+                    </span>
+                    {% endif %}
+                    <!-- Expand/Collapse Icon -->
+                    <span class="expand-icon" id="icon_session_{{ loop.index }}" 
+                        style="font-size: 1.5em; transition: transform 0.3s;">
+                        ▼
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Collapsible Session Details -->
+            <div id="content_session_{{ loop.index }}" 
+                class="session-content" style="display: none; margin-top: 15px; padding: 20px; 
+                                            background: white; border-radius: 10px; 
+                                            box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <div style="display: grid; gap: 15px;">
+                    {% if session.topics_covered %}
+                    <div>
+                        <strong>Topics Covered:</strong> {{ session.topics_covered }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if session.subtopics_assessed %}
+                    <div>
+                        <strong>Progress Updates:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            {% for assessment in session.subtopics_assessed %}
+                            <li style="margin: 5px 0;">
+                                <strong>{{ assessment.subtopic_name }}:</strong> 
+                                <span style="color: #e74c3c;">{{ assessment.old_level or 0 }}</span> 
+                                → 
+                                <span style="color: #27ae60;">{{ assessment.new_level }}</span>/10
+                                {% if assessment.new_level > (assessment.old_level or 0) %}
+                                    <span style="color: #27ae60; font-size: 0.9em;">
+                                        (+{{ assessment.new_level - (assessment.old_level or 0) }})
+                                    </span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% if session.notes %}
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; 
+                                border-left: 4px solid var(--primary-color);">
+                        <strong>Session Notes:</strong>
+                        <p style="margin: 10px 0 0 0; font-style: italic;">{{ session.notes }}</p>
+                    </div>
                     {% endif %}
                 </div>
-                <div>
-                    <p><strong>Tutor:</strong> {{ session.tutor_name }}</p>
-                </div>
             </div>
-            {% if session.notes %}
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                <p style="font-style: italic;">{{ session.notes }}</p>
-            </div>
-            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -552,6 +598,42 @@ input:checked + .slider:before {
             toggleView();
         }
     });
+
+    // Toggle Session Function
+    function toggleSession(sessionId) {
+        const content = document.getElementById('content_' + sessionId);
+        const icon = document.getElementById('icon_' + sessionId);
+        const header = content.previousElementSibling;
+        
+        if (content.style.display === 'none' || content.style.display === '') {
+            // Show with animation
+            content.style.display = 'block';
+            content.style.opacity = '0';
+            content.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                content.style.transition = 'opacity 0.3s, transform 0.3s';
+                content.style.opacity = '1';
+                content.style.transform = 'translateY(0)';
+            }, 10);
+            
+            icon.style.transform = 'rotate(180deg)';
+            header.style.background = '#e8f4f8';
+            header.style.borderColor = 'var(--primary-color)';
+        } else {
+            // Hide with animation
+            content.style.opacity = '0';
+            content.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                content.style.display = 'none';
+            }, 300);
+            
+            icon.style.transform = 'rotate(0deg)';
+            header.style.background = '#f8f9fa';
+            header.style.borderColor = '#ddd';
+        }
+    }
     </script>
 
 {% endblock %}

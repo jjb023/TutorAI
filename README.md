@@ -364,7 +364,7 @@ Many tutors lack a structured system to:
 | 17.07.25 | *2.5* | Database entry errors and answers bug fixing |
 | 21.07.25 | 1.5 | Menu drop downs |
 | 22.07.25 | 2.5 | Reformatting student progress |
-| 23.07.25 | 2 |  |
+| 23.07.25 | 3 | Generalised question preparation |
 | 22.07.25 |  |  |
 
 

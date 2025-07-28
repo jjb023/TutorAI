@@ -1,5 +1,3 @@
-# TutorAI
-
 # 🎯 Tutor AI - Intelligent Student Progress Tracking System
 
 <div align="center">
@@ -11,9 +9,166 @@
 
 **A comprehensive web-based tutoring management system designed to track student progress, identify learning patterns, and generate personalized worksheets using AI.**
 
-[Features](#-features) • [Architecture](#-architecture) • [Roadmap](#-roadmap)
+[Features](#-features) • [Architecture](#-architecture) • [Demos](#-demos) • [Roadmap](#-roadmap)
 
 </div>
+
+---
+
+## 🎥 Demos & Screenshots
+
+*Experience the intuitive design and powerful features of Tutor AI through these interactive demonstrations and screenshots.*
+
+### 📱 Responsive Dashboard
+<div align="center">
+  
+![Dashboard Overview](demos/dashboard-overview.png)
+*Main dashboard with student statistics, tutor management, and quick session access*
+
+</div>
+
+The dashboard provides an at-a-glance view of your tutoring practice with:
+- **Live Statistics**: Student count, active tutors, and curriculum topics
+- **Quick Actions**: One-click access to session recording and student management
+- **Recent Activity**: Latest sessions and progress updates
+- **Mobile-First Design**: Optimized for tablets and smartphones
+
+---
+
+### 👥 Student Management System
+
+<div align="center">
+
+![Student List View](demos/student-list.png)
+*Comprehensive student overview with progress indicators and quick actions*
+
+</div>
+
+**Key Features:**
+- Visual progress bars showing overall mastery levels
+- Color-coded performance indicators (excellent, good, needs work)
+- Quick session entry and progress viewing
+- Comprehensive student profiles with contact information
+
+---
+
+### 📊 Detailed Progress Tracking
+
+<div align="center">
+
+![Student Progress Detail](demos/student-progress-detail.png)
+*In-depth progress analysis with topic breakdowns and mastery visualization*
+
+</div>
+
+**Advanced Analytics Include:**
+- **Topic-Level Mastery**: 1-10 scale for each curriculum subtopic
+- **Visual Progress Circles**: Instant recognition of student strengths/weaknesses
+- **Historical Trends**: Session-by-session improvement tracking
+- **Smart Recommendations**: AI-powered suggestions for focus areas
+
+---
+
+### ⚡ Touch-Optimized Session Entry
+
+<div align="center">
+
+![Session Entry Form](demos/session-entry-form.png)
+*Mobile-friendly session recording with intuitive mastery level sliders*
+
+</div>
+
+**Session Recording Features:**
+- **Touch-Friendly Sliders**: Easy 1-10 mastery level adjustment
+- **Multi-Topic Assessment**: Update multiple subtopics in one session
+- **Real-Time Progress Updates**: Instant visual feedback
+- **Session Notes**: Detailed observations and recommendations
+
+---
+
+### 📚 Hierarchical Curriculum Management
+
+<div align="center">
+
+![Topic Management](demos/topic-management.png)
+*Structured curriculum organization with main topics and subtopics*
+
+</div>
+
+**Curriculum Structure:**
+- **Main Topics**: Mathematics, English, Science (expandable)
+- **Subtopics**: Granular skill tracking (e.g., Addition, Fractions, Algebra)
+- **Difficulty Progression**: Ordered learning pathways
+- **Color-Coded Organization**: Visual topic identification
+
+---
+
+### 📄 AI-Powered Worksheet Generation *(In Development)*
+
+<div align="center">
+
+![Worksheet Generator](demos/worksheet-generator.png)
+*Intelligent worksheet creation based on individual student needs*
+
+</div>
+
+**Smart Generation Features:**
+- **Difficulty Targeting**: Questions matched to student's current mastery level
+- **Weak Area Focus**: Automatic identification of topics needing practice
+- **Customizable Templates**: Adjustable question count and difficulty distribution
+- **PDF Export**: Professional, printable worksheets
+
+---
+
+### 👤 Multi-Tutor Support
+
+<div align="center">
+
+![Tutor Management](demos/tutor-management.png)
+*Secure multi-tutor access with role-based permissions*
+
+</div>
+
+**Collaborative Features:**
+- **Role-Based Access**: Admin vs. standard tutor permissions
+- **Session Attribution**: Track which tutor conducted each session
+- **Individual Dashboards**: Personalized views for each tutor
+- **Secure Authentication**: Flask-Login integration
+
+---
+
+## 🚀 Try It Yourself
+
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/tutor-ai.git
+cd tutor-ai
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up the database
+python database.py
+
+# Launch the web interface
+cd web
+python app.py
+```
+
+### Demo Credentials
+```
+Admin Account:
+Username: admin
+Password: admin123
+
+Demo Tutor:
+Username: tutor1
+Password: password
+```
+
+### 🌐 Live Demo
+*Coming Soon: Experience Tutor AI live at [demo.tutor-ai.com](https://demo.tutor-ai.com)*
 
 ---
 
@@ -137,8 +292,6 @@ tutor-ai/
 └── 📄 README.md              # This file
 ```
 
-
-
 ---
 
 ## Roadmap
@@ -195,13 +348,11 @@ python health_check.py
 
 ---
 
-
 ## 📬 Contact
 
-**Josh Beal** - [joshbeal023@gmail.com](mailto:your.joshbeal023@gmail.com)
+**Josh Beal** - [joshbeal023@gmail.com](mailto:joshbeal023@gmail.com)
 
 ---
-
 
 # Tutor AI – Personalised Progress Tracker for Tutors
 
@@ -365,7 +516,7 @@ Many tutors lack a structured system to:
 | 21.07.25 | 1.5 | Menu drop downs |
 | 22.07.25 | 2.5 | Reformatting student progress |
 | 23.07.25 | 3 | Generalised question preparation |
-| 22.07.25 |  |  |
+| 28.07.25 | 4 | Question prep and demos |
 
 
 

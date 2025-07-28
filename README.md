@@ -17,7 +17,7 @@
 
 ## 🎥 Demos & Screenshots
 
-*Experience the intuitive design and powerful features of Tutor AI through these interactive demonstrations and screenshots.*
+*Experience the intuitive design and powerful features of Tutor AI through these demonstrations and screenshots.*
 
 ### 📱 Responsive Dashboard
 <div align="center">

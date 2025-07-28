@@ -24,9 +24,37 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="contact_info" class="form-label">Contact Information</label>
-                        <textarea class="form-control" id="contact_info" name="contact_info" rows="3" 
-                                  placeholder="Parent contact, school, notes, etc.">{{ student.contact_info if student else '' }}</textarea>
+                        <label for="year_group" class="form-label">Year Group <span class="text-danger">*</span></label>
+                        <select class="form-control" id="year_group" name="year_group" required>
+                            <option value="">Select year group...</option>
+                            {% set year_groups = ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6", 
+                                                  "Year 7", "Year 8", "Year 9", "Year 10", "Year 11"] %}
+                            {% for year in year_groups %}
+                            <option value="{{ year }}" {% if student and student.year_group == year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="target_school" class="form-label">Target School</label>
+                        <input type="text" class="form-control" id="target_school" name="target_school" 
+                               value="{{ student.target_school if student and student.target_school else '' }}"
+                               placeholder="e.g., St. Mary's Academy (optional)">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="parent_contact" class="form-label">Parent Contact</label>
+                        <input type="text" class="form-control" id="parent_contact" name="parent_contact" 
+                               value="{{ student.parent_contact if student and student.parent_contact else '' }}"
+                               placeholder="Email or phone number (optional)">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Any additional notes about the student">{{ student.notes if student and student.notes else '' }}</textarea>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">

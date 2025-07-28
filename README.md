@@ -137,41 +137,6 @@ The dashboard provides an at-a-glance view of your tutoring practice with:
 
 ---
 
-## 🚀 Try It Yourself
-
-### Quick Start
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/tutor-ai.git
-cd tutor-ai
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up the database
-python database.py
-
-# Launch the web interface
-cd web
-python app.py
-```
-
-### Demo Credentials
-```
-Admin Account:
-Username: admin
-Password: admin123
-
-Demo Tutor:
-Username: tutor1
-Password: password
-```
-
-### 🌐 Live Demo
-*Coming Soon: Experience Tutor AI live at [demo.tutor-ai.com](https://demo.tutor-ai.com)*
-
----
-
 ## Overview
 
 Tutor AI is a full-stack web application that revolutionizes how private tutors manage their students' learning journey. Built with a focus on UK curriculum mathematics (adaptable to other subjects), it provides intelligent insights into student performance and automates worksheet generation based on individual learning needs.

@@ -482,6 +482,9 @@ Many tutors lack a structured system to:
 | 22.07.25 | 2.5 | Reformatting student progress |
 | 23.07.25 | 3 | Generalised question preparation |
 | 28.07.25 | 4 | Question prep and demos |
+| 29.07.25 | 3 | PDF Generation first iteration |
+| 29.07.25 | 2 | PDF Generation changes |
+
 
 
 

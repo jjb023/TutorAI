@@ -20,6 +20,29 @@
                       rows="3" placeholder="Enter the answer or solution (optional for tutor reference)">{{ question.answer if question and question.answer else '' }}</textarea>
             <small style="color: #666;">This answer is for tutor reference only and won't appear on student worksheets</small>
         </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="is_template" name="is_template" onchange="toggleTemplateMode()">
+                This is a variable question template
+            </label>
+        </div>
+
+        <div id="template_help" style="display: none; background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h5>📝 Variable Question Help</h5>
+            <p>Use curly braces to create variables that will be randomly generated:</p>
+            <ul>
+                <li><code>{num1}</code> - Random number 1-100</li>
+                <li><code>{num1:5-15}</code> - Random number between 5 and 15</li>
+                <li><code>{num2:10-50}</code> - Another random number between 10 and 50</li>
+            </ul>
+            <p><strong>Example:</strong> What is {num1:1-20} + {num2:1-20}?</p>
+            
+            <div id="template_preview" style="margin-top: 15px;">
+                <button type="button" onclick="previewTemplate()" class="btn btn-info">Preview Examples</button>
+                <div id="preview_results"></div>
+            </div>
+        </div>
         
         <div class="form-group">
             <label for="difficulty_level">Difficulty Level <span style="color: red;">*</span></label>
@@ -83,4 +106,48 @@
     <a href="{{ url_for('topic.topic_detail', topic_id=subtopic.main_topic_id) }}">📖 Back to {{ subtopic.topic_name }}</a>
     <a href="{{ url_for('main.dashboard') }}">🏠 Dashboard</a>
 </div>
+
+<script>
+function toggleTemplateMode() {
+    const isTemplate = document.getElementById('is_template').checked;
+    document.getElementById('template_help').style.display = isTemplate ? 'block' : 'none';
+    
+    if (isTemplate) {
+        // Update placeholder
+        document.getElementById('question_text').placeholder = 'e.g., What is {num1:1-20} + {num2:1-20}?';
+    } else {
+        document.getElementById('question_text').placeholder = 'Enter your question text...';
+    }
+}
+
+function previewTemplate() {
+    const questionText = document.getElementById('question_text').value;
+    const previewDiv = document.getElementById('preview_results');
+    
+    // Simple client-side preview
+    let previews = '<h6>Example Questions:</h6><ul>';
+    
+    for (let i = 0; i < 3; i++) {
+        let preview = questionText;
+        // Find all variables
+        const matches = preview.match(/\{(\w+)(?::(\d+)-(\d+))?\}/g);
+        
+        if (matches) {
+            matches.forEach(match => {
+                const parts = match.match(/\{(\w+)(?::(\d+)-(\d+))?\}/);
+                const min = parseInt(parts[2]) || 1;
+                const max = parseInt(parts[3]) || 100;
+                const value = Math.floor(Math.random() * (max - min + 1)) + min;
+                preview = preview.replace(match, value);
+            });
+        }
+        
+        previews += `<li>${preview}</li>`;
+    }
+    previews += '</ul>';
+    
+    previewDiv.innerHTML = previews;
+}
+</script>
+
 {% endblock %}

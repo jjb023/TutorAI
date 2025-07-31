@@ -289,11 +289,26 @@ class WorksheetService:
             
             # Add questions to worksheet
             for i, question in enumerate(selected_questions, 1):
-                conn.execute('''
-                    INSERT INTO worksheet_questions 
-                    (worksheet_id, question_id, question_order, space_allocated)
-                    VALUES (?, ?, ?, ?)
-                ''', (worksheet_id, question['id'], i, question['space_required']))
+                if question.get('is_template'):
+                    # Generate a specific instance from the template
+                    generated_text, generated_answer, values = QuestionService.generate_question_from_template(
+                        question['question_text'],
+                        question.get('template_params')
+                    )
+                    
+                    # Save with generated text
+                    conn.execute('''
+                        INSERT INTO worksheet_questions 
+                        (worksheet_id, question_id, question_order, space_allocated, custom_question_text)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (worksheet_id, question['id'], i, question['space_required'], generated_text))
+                else:
+                    # Regular static question
+                    conn.execute('''
+                        INSERT INTO worksheet_questions 
+                        (worksheet_id, question_id, question_order, space_allocated)
+                        VALUES (?, ?, ?, ?)
+                    ''', (worksheet_id, question['id'], i, question['space_required']))
             
             conn.commit()
             

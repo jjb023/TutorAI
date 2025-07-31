@@ -87,7 +87,18 @@ def edit_question(question_id):
     if not subtopic:
         flash('Subtopic not found!', 'error')
         return redirect(url_for('topic.list_topics'))
-    
+
+    # If it's a template, generate some examples for display
+    if question.get('is_template'):
+        examples = []
+        for i in range(3):
+            generated_text, _, _ = QuestionService.generate_question_from_template(
+                question['question_text'],
+                question.get('template_params')
+            )
+            examples.append(generated_text)
+        question['examples'] = examples
+        
     if request.method == 'POST':
         question_text = request.form.get('question_text', '').strip()
         answer = request.form.get('answer', '').strip() or None

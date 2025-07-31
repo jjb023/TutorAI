@@ -48,16 +48,24 @@ def add_question(subtopic_id):
         time_estimate = request.form.get('time_estimate', type=int)
         space_required = request.form.get('space_required')
         question_type = request.form.get('question_type', '').strip() or None
+        is_template = request.form.get('is_template') == 'on'
         
         if not question_text or not difficulty_level:
             flash('Question text and difficulty level are required!', 'error')
             return render_template('worksheet/question_edit.html', subtopic=subtopic)
         
+        # Parse template parameters if it's a template
+        template_params = None
+        if is_template:
+            template_params = QuestionService.parse_template_variables(question_text)
+            if not template_params:
+                flash('No variables found in template! Use format like {num1:1-20}', 'warning')
+        
         try:
             QuestionService.create_question(
                 subtopic_id, question_text, difficulty_level,
                 time_estimate, space_required, current_user.id, 
-                question_type, answer
+                question_type, answer, is_template, template_params
             )
             flash('Question added successfully!', 'success')
             return redirect(url_for('worksheet.question_bank', subtopic_id=subtopic_id))

@@ -8,19 +8,89 @@ class QuestionService:
     @staticmethod
     def create_question(subtopic_id, question_text, difficulty_level, 
                        time_estimate, space_required, tutor_id, 
-                       question_type=None, answer=None):
-        """Add a new question to the bank with optional answer."""
+                       question_type=None, answer=None, is_template=False, template_params=None):
+        """Add a new question to the bank with optional template support."""
         with get_db_connection() as conn:
             cursor = conn.execute('''
                 INSERT INTO questions 
                 (subtopic_id, question_text, answer, difficulty_level, 
                  time_estimate_minutes, space_required, question_type, 
-                 created_by_tutor_id, active)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                 created_by_tutor_id, active, is_template, template_params)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             ''', (subtopic_id, question_text, answer, difficulty_level, 
-                  time_estimate, space_required, question_type, tutor_id))
+                  time_estimate, space_required, question_type, tutor_id, 
+                  is_template, template_params))
             conn.commit()
             return cursor.lastrowid
+
+    @staticmethod
+    def parse_template_variables(question_text):
+        """Extract variables from question text like {num1:1-20}"""
+        import re
+        import json
+        
+        # Pattern to match {variable:min-max} or just {variable}
+        pattern = r'\{(\w+)(?::(\d+)-(\d+))?\}'
+        matches = re.findall(pattern, question_text)
+        
+        variables = {}
+        for match in matches:
+            var_name = match[0]
+            min_val = int(match[1]) if match[1] else 1
+            max_val = int(match[2]) if match[2] else 100
+            
+            variables[var_name] = {
+                "type": "int",
+                "min": min_val,
+                "max": max_val
+            }
+        
+        return json.dumps(variables) if variables else None
+
+    @staticmethod
+    def generate_question_from_template(template_text, template_params):
+        """Generate a specific question from a template"""
+        import json
+        import random
+        import re
+        
+        if isinstance(template_params, str):
+            params = json.loads(template_params)
+        else:
+            params = template_params
+        
+        generated_text = template_text
+        generated_values = {}
+        
+        for var_name, config in params.items():
+            if config['type'] == 'int':
+                value = random.randint(config['min'], config['max'])
+            else:
+                value = config['min']  # Default for now
+            
+            generated_values[var_name] = value
+            # Replace all occurrences of the variable
+            generated_text = re.sub(
+                rf'\{{{var_name}(?::\d+-\d+)?\}}', 
+                str(value), 
+                generated_text
+            )
+        
+        # Try to calculate answer for simple math
+        answer = QuestionService._calculate_simple_answer(generated_text, generated_values)
+        
+        return generated_text, answer, generated_values
+
+    @staticmethod
+    def _calculate_simple_answer(question_text, values):
+        """Calculate answer for simple addition/subtraction"""
+        # Simple cases only - you can expand this
+        if 'num1' in values and 'num2' in values:
+            if '+' in question_text and '?' in question_text:
+                return str(values['num1'] + values['num2'])
+            elif '-' in question_text and '?' in question_text:
+                return str(values['num1'] - values['num2'])
+        return None
     
     @staticmethod
     def get_questions_by_subtopic(subtopic_id, difficulty_level=None):

@@ -83,7 +83,7 @@ class SessionValidator:
         
         return duration
     
-        @staticmethod
+    @staticmethod
     def validate_mastery_level(level):
         """Validate mastery level"""
         try:
@@ -216,15 +216,16 @@ def sanitize_filename(filename):
     if not filename:
         return ""
     
-    # Handle the specific case of "../../../etc/passwd"
-    # We need to replace each "../" with ".._"
-    filename = filename.replace('../', '.._')
+    if filename.startswith("../"):
+        filename = ".._" + filename.replace("../", ".._")
+    else:
+        filename = filename.replace("../", ".._")
     
-    # Remove other dangerous characters
+    filename = filename.replace("/", "_")
+    filename = filename.replace("\\", "_")
     filename = re.sub(r'[\:*?"<>|]', '_', filename)
     
-    # Limit length
-    return filename[:255]  # Limit length
+    return filename[:255]
 
 # Usage example for Flask routes
 def validate_student_data(form_data):

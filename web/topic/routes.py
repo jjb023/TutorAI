@@ -2,6 +2,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .services import TopicService
+from utils.validators import TopicValidator, ValidationError, sanitize_html
+from utils.decorators import admin_required, validate_id
 
 topic_bp = Blueprint('topic', __name__, url_prefix='/topics')
 

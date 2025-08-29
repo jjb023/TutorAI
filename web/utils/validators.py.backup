@@ -83,22 +83,11 @@ class SessionValidator:
         
         return duration
     
-        @staticmethod
+    @staticmethod
     def validate_mastery_level(level):
         """Validate mastery level"""
         try:
-            # Handle string inputs that might come from forms
-            if isinstance(level, str):
-                # Check if it's a float string first
-                if '.' in str(level):
-                    # Float values are not allowed for mastery levels
-                    raise ValidationError("Mastery level must be a whole number")
-                level = int(level)
-            else:
-                # For numeric types, check if it's a float
-                if isinstance(level, float) and not level.is_integer():
-                    raise ValidationError("Mastery level must be a whole number")
-                level = int(level)
+            level = int(level)
         except (ValueError, TypeError):
             raise ValidationError("Mastery level must be a number")
         
@@ -216,14 +205,8 @@ def sanitize_filename(filename):
     if not filename:
         return ""
     
-    # Handle the specific case of "../../../etc/passwd"
-    # We need to replace each "../" with ".._"
-    filename = filename.replace('../', '.._')
-    
-    # Remove other dangerous characters
-    filename = re.sub(r'[\:*?"<>|]', '_', filename)
-    
-    # Limit length
+    # Remove path separators and other dangerous characters
+    filename = re.sub(r'[/\\:*?"<>|]', '_', filename)
     return filename[:255]  # Limit length
 
 # Usage example for Flask routes

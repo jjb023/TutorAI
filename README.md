@@ -478,13 +478,15 @@ Many tutors lack a structured system to:
 | 14.07.25 | *4* | Worksheet generation + subtopic question bank implementation |
 | 16.07.25 | *3* | Question population and worksheet |
 | 17.07.25 | *2.5* | Database entry errors and answers bug fixing |
-| 21.07.25 | 1.5 | Menu drop downs |
-| 22.07.25 | 2.5 | Reformatting student progress |
-| 23.07.25 | 3 | Generalised question preparation |
-| 28.07.25 | 4 | Question prep and demos |
-| 29.07.25 | 3 | PDF Generation first iteration |
-| 30.07.25 | 2 | PDF Generation changes |
-| 31.07.25 | 3 | PDF Generation complete and variablee questions |
+| 21.07.25 | *1.5* | Menu drop downs |
+| 22.07.25 | *2.5* | Reformatting student progress |
+| 23.07.25 | *3* | Generalised question preparation |
+| 28.07.25 | *4* | Question prep and demos |
+| 29.07.25 | *3* | PDF Generation first iteration |
+| 30.07.25 | *2* | PDF Generation changes |
+| 31.07.25 | *3* | PDF Generation complete and variablee questions |
+| 29.08.25 | 6 | Validator scripts, database optimisation |
+
 
 
 

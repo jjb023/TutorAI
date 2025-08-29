@@ -1,0 +1,29 @@
+Tutor AI Database Optimization Report
+Generated: 2025-08-29 15:53:55
+==================================================
+
+Database Information:
+Path: ../../data/tutor_ai.db
+Size: 840.0 KB
+
+Table Statistics:
+  students: 4 rows
+  main_topics: 4 rows
+  subtopics: 63 rows
+  subtopic_progress: 43 rows
+  sessions: 8 rows
+  tutors: 4 rows
+  year_groups: 4 rows
+  question_bank: 6 rows
+  worksheets: 6 rows
+  session_subtopic_progress: 0 rows
+  questions: 3152 rows
+  worksheet_questions: 118 rows
+  migration_log: 1 rows
+  worksheet_templates: 0 rows
+
+Optimization Recommendations:
+1. Run optimization monthly or after bulk data imports
+2. Monitor slow queries in production logs
+3. Consider partitioning large tables if they exceed 100k rows
+4. Regularly backup before optimization

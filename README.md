@@ -486,6 +486,8 @@ Many tutors lack a structured system to:
 | 30.07.25 | *2* | PDF Generation changes |
 | 31.07.25 | *3* | PDF Generation complete and variablee questions |
 | 29.08.25 | 6 | Validator scripts, database optimisation |
+| 02.09.25 | 3 | Password Security |
+| 05.09.25 | 2 | Launch research |
 
 
 

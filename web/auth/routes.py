@@ -22,6 +22,28 @@ class Tutor:
     def get_id(self):
         return str(self.id)
 
+# Demo users - no database needed!
+DEMO_USERS = {
+    'admin': {
+        'id': 1,
+        'password': 'admin123',
+        'full_name': 'Administrator',
+        'email': 'admin@tutorai.demo'
+    },
+    'tutor1': {
+        'id': 2, 
+        'password': 'password',
+        'full_name': 'Demo Tutor 1',
+        'email': 'tutor1@tutorai.demo'
+    },
+    'demo': {
+        'id': 3,
+        'password': 'demo123', 
+        'full_name': 'Demo User',
+        'email': 'demo@tutorai.demo'
+    }
+}
+
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 def verify_tutor_login(username, password):

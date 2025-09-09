@@ -64,6 +64,21 @@ def create_app(config_name=None):
 # Create the app instance for Gunicorn
 app = create_app('production' if os.environ.get('FLASK_ENV') == 'production' else 'development')
 
+# Add this route to your app.py for testing
+@app.route('/test-login')
+def test_login():
+    """Test login without form"""
+    from auth.routes import verify_tutor_login, Tutor
+    from flask_login import login_user
+    
+    # Try to login admin directly
+    tutor = verify_tutor_login('admin', 'admin123')
+    if tutor:
+        login_user(tutor)
+        return f"✅ Login successful! User: {tutor.full_name} | <a href='/dashboard'>Go to Dashboard</a>"
+    else:
+        return "❌ Login failed!"
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
     app.run(debug=True, host='0.0.0.0', port=port)

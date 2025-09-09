@@ -1,15 +1,9 @@
 from flask import Flask
 from flask_login import LoginManager
 from config import config
-from utils.database import init_app as init_db
-import sys
 import os
 
-# Add the parent directory to the path so we can import our database
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import TutorAIDatabase
-
-# Simple User class for Flask-Login (using your existing system)
+# Simple User class for Flask-Login
 class Tutor:
     def __init__(self, id, username, full_name, email):
         self.id = id
@@ -23,87 +17,53 @@ class Tutor:
     def get_id(self):
         return str(self.id)
 
-def create_app(config_name='default'):
-    app = Flask(__name__)
-    app.config.from_object(config[config_name])
+def create_app(config_name=None):
+    if config_name is None:
+        config_name = os.environ.get('FLASK_ENV', 'development')
     
-    # Initialize extensions
+    app = Flask(__name__)
+    app.config.from_object(config.get(config_name, config['default']))
+    
+    print(f"🚀 Starting in {config_name} mode")
+    print(f"📂 Database path: {app.config['DATABASE_PATH']}")
+    
+    # Initialize database with app context
+    with app.app_context():
+        try:
+            from utils.database_init import init_database
+            db_path = init_database()
+            print(f"✅ Database ready at: {db_path}")
+        except Exception as e:
+            print(f"❌ Database setup failed: {e}")
+            # Continue anyway for demo purposes
+    
+    # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
-    login_manager.login_message_category = 'info'
-
-        # ENSURE DATABASE EXISTS IN PRODUCTION
-    try:
-        # Create data directory if it doesn't exist
-        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
-        os.makedirs(data_dir, exist_ok=True)
-        
-        # Initialize database if it doesn't exist
-        db_path = os.path.join(data_dir, 'tutor_ai.db')
-        if not os.path.exists(db_path):
-            print(f"🔧 Creating database at: {db_path}")
-            from database import TutorAIDatabase
-            db = TutorAIDatabase(db_path)
-            db.upgrade_for_multitutor()
-            
-            # Add default admin user
-            hashed_password = 'temp_password_hash'  # Will be updated on first login
-            db.add_tutor('admin', hashed_password, 'Administrator', 'admin@tutorai.local')
-            db.close()
-            print("✅ Database initialized with admin user")
-        else:
-            print(f"✅ Database found at: {db_path}")
-            
-    except Exception as e:
-        print(f"❌ Database setup error: {e}")
     
+    @login_manager.user_loader
     def load_user(user_id):
-        """Load user for Flask-Login using your existing database"""
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(os.path.dirname(current_dir), 'data', 'tutor_ai.db')
-        db = TutorAIDatabase(db_path)
-        try:
-            db.cursor.execute("SELECT id, username, full_name, email FROM tutors WHERE id = ? AND active = 1", (user_id,))
-            tutor_data = db.cursor.fetchone()
-            if tutor_data:
-                return Tutor(tutor_data[0], tutor_data[1], tutor_data[2], tutor_data[3])
-        finally:
-            db.close()
-        return None
-    
-    login_manager.user_loader(load_user)
-    
-    # Initialize database
-    init_db(app)
+        # Simple demo users for now
+        demo_users = {
+            '1': Tutor(1, 'admin', 'Administrator', 'admin@tutorai.demo'),
+            '2': Tutor(2, 'tutor1', 'Demo Tutor 1', 'tutor1@tutorai.demo'),
+            '3': Tutor(3, 'demo', 'Demo User', 'demo@tutorai.demo')
+        }
+        return demo_users.get(user_id)
     
     # Register blueprints
     from auth import auth_bp
     from main import main_bp
-    from student import student_bp
-    from tutor import tutor_bp
-    from session import session_bp
-    from topic import topic_bp
-    from worksheet import worksheet_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(student_bp)
-    app.register_blueprint(tutor_bp)
-    app.register_blueprint(session_bp)
-    app.register_blueprint(topic_bp)
-    app.register_blueprint(worksheet_bp)
     
     return app
 
-app = create_app()
+# Create the app instance for Gunicorn
+app = create_app('production' if os.environ.get('FLASK_ENV') == 'production' else 'development')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
-    print("🚀 Starting Tutor AI Flask App...")
-    print("📱 Access from other devices on your network:")
-    print("   Find your IP address and use: http://YOUR_IP:5001")
-    print("🌐 Local access: http://localhost:5001")
-    print("⚠️  Press Ctrl+C to stop the server")
     app.run(debug=True, host='0.0.0.0', port=port)

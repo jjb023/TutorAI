@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "cd web && gunicorn --bind 0.0.0.0:$PORT app:app"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "always"
+
+[build.env]
+PYTHONPATH = "/app/web:/app"

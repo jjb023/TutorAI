@@ -33,8 +33,32 @@ def create_app(config_name='default'):
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
+
+        # ENSURE DATABASE EXISTS IN PRODUCTION
+    try:
+        # Create data directory if it doesn't exist
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        
+        # Initialize database if it doesn't exist
+        db_path = os.path.join(data_dir, 'tutor_ai.db')
+        if not os.path.exists(db_path):
+            print(f"🔧 Creating database at: {db_path}")
+            from database import TutorAIDatabase
+            db = TutorAIDatabase(db_path)
+            db.upgrade_for_multitutor()
+            
+            # Add default admin user
+            hashed_password = 'temp_password_hash'  # Will be updated on first login
+            db.add_tutor('admin', hashed_password, 'Administrator', 'admin@tutorai.local')
+            db.close()
+            print("✅ Database initialized with admin user")
+        else:
+            print(f"✅ Database found at: {db_path}")
+            
+    except Exception as e:
+        print(f"❌ Database setup error: {e}")
     
-    @login_manager.user_loader
     def load_user(user_id):
         """Load user for Flask-Login using your existing database"""
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +72,8 @@ def create_app(config_name='default'):
         finally:
             db.close()
         return None
+    
+    login_manager.user_loader(load_user)
     
     # Initialize database
     init_db(app)

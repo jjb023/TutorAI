@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required
 import sys
 import os
@@ -26,8 +26,13 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 def verify_tutor_login(username, password):
     """Secure password verification using environment variables and hashing"""
-    current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    db_path = os.path.join(current_dir, 'data', 'tutor_ai.db')
+    # Use the configured database path from Flask config
+    db_path = current_app.config.get('DATABASE_PATH')
+    if not os.path.isabs(db_path):
+        # If path is relative, make it relative to the project root
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        db_path = os.path.join(project_root, db_path)
+    
     db = TutorAIDatabase(db_path)
     
     try:

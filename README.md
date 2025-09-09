@@ -488,6 +488,8 @@ Many tutors lack a structured system to:
 | 29.08.25 | 6 | Validator scripts, database optimisation |
 | 02.09.25 | 3 | Password Security |
 | 05.09.25 | 2 | Launch research |
+| 09.09.25 | 4 | Launch to railway |
+
 
 
 

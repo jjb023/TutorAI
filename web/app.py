@@ -71,11 +71,13 @@ def create_app(config_name='default'):
     
     return app
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
+    port = int(os.environ.get('PORT', 5001))
     print("🚀 Starting Tutor AI Flask App...")
     print("📱 Access from other devices on your network:")
     print("   Find your IP address and use: http://YOUR_IP:5001")
     print("🌐 Local access: http://localhost:5001")
     print("⚠️  Press Ctrl+C to stop the server")
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, host='0.0.0.0', port=port)

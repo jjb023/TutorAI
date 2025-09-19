@@ -13,7 +13,7 @@ def init_database():
     # Check if we're using PostgreSQL (Railway provides DATABASE_URL)
     database_url = os.environ.get('DATABASE_URL')
     
-    if database_url:
+    if database_url and psycopg2:
         # PostgreSQL for production (Railway)
         print("🐘 Using PostgreSQL database")
         return init_postgresql(database_url)

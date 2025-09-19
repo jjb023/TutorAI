@@ -43,14 +43,24 @@ def create_app(config_name=None):
     login_manager.login_view = 'auth.login'
     
     @login_manager.user_loader
-    def load_user(user_id):
-        # Simple demo users for now
-        demo_users = {
-            '1': Tutor(1, 'admin', 'Administrator', 'admin@tutorai.demo'),
-            '2': Tutor(2, 'tutor1', 'Demo Tutor 1', 'tutor1@tutorai.demo'),
-            '3': Tutor(3, 'demo', 'Demo User', 'demo@tutorai.demo')
-        }
-        return demo_users.get(user_id)
+    def load_user(user_id):  # type: ignore
+        """Load user from database for Flask-Login"""
+        try:
+            from utils.db_connection import get_db
+            with get_db() as db:
+                result = db.execute(
+                    "SELECT id, username, full_name, email FROM tutors WHERE id = ? AND active = true",
+                    (user_id,)
+                ).fetchone()
+                
+                if result:
+                    if isinstance(result, dict):
+                        return Tutor(result['id'], result['username'], result['full_name'], result['email'])
+                    else:
+                        return Tutor(result['id'], result['username'], result['full_name'], result['email'])
+        except Exception as e:
+            print(f"Error loading user {user_id}: {e}")
+        return None
     
     # Register blueprints
     from auth import auth_bp
@@ -64,20 +74,21 @@ def create_app(config_name=None):
 # Create the app instance for Gunicorn
 app = create_app('production' if os.environ.get('FLASK_ENV') == 'production' else 'development')
 
-# Add this route to your app.py for testing
-@app.route('/test-login')
-def test_login():
-    """Test login without form"""
-    from auth.routes import verify_tutor_login, Tutor
-    from flask_login import login_user
-    
-    # Try to login admin directly
-    tutor = verify_tutor_login('admin', 'admin123')
-    if tutor:
-        login_user(tutor)
-        return f"✅ Login successful! User: {tutor.full_name} | <a href='/dashboard'>Go to Dashboard</a>"
-    else:
-        return "❌ Login failed!"
+# Test route for database connectivity
+@app.route('/test-db')
+def test_db():
+    """Test database connection"""
+    try:
+        from utils.db_connection import get_db
+        with get_db() as db:
+            result = db.execute("SELECT COUNT(*) as count FROM tutors").fetchone()
+            if isinstance(result, dict):
+                count = result['count']
+            else:
+                count = result[0]
+            return f"✅ Database connected! Found {count} tutors | <a href='/auth/login'>Login</a>"
+    except Exception as e:
+        return f"❌ Database error: {e}"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))

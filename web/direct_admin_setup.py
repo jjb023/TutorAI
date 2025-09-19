@@ -23,8 +23,8 @@ except ImportError as e:
 
 from werkzeug.security import generate_password_hash
 
-# Railway PostgreSQL connection
-DATABASE_URL = "postgresql://postgres:NAjDrYiSrjQqeIOyIqAJUbXtIJIfGkzX@postgres.railway.internal:5432/railway"
+# Railway PostgreSQL connection (external URL)
+DATABASE_URL = "postgresql://postgres:NAjDrYiSrjQqeIOyIqAJUbXtIJIfGkzX@tramway.proxy.rlwy.net:47230/railway"
 
 def setup_admin_direct():
     """Setup admin user directly in PostgreSQL"""

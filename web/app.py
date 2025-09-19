@@ -66,6 +66,37 @@ def create_app(config_name=None):
     from auth import auth_bp
     from main import main_bp
     
+    # Try to import additional blueprints if they exist
+    try:
+        from student import student_bp
+        app.register_blueprint(student_bp)
+    except ImportError:
+        print("⚠️ Student blueprint not found")
+    
+    try:
+        from tutor import tutor_bp
+        app.register_blueprint(tutor_bp)
+    except ImportError:
+        print("⚠️ Tutor blueprint not found")
+    
+    try:
+        from session import session_bp
+        app.register_blueprint(session_bp)
+    except ImportError:
+        print("⚠️ Session blueprint not found")
+    
+    try:
+        from topic import topic_bp
+        app.register_blueprint(topic_bp)
+    except ImportError:
+        print("⚠️ Topic blueprint not found")
+    
+    try:
+        from worksheet import worksheet_bp
+        app.register_blueprint(worksheet_bp)
+    except ImportError:
+        print("⚠️ Worksheet blueprint not found")
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     

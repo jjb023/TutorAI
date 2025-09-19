@@ -4,9 +4,9 @@ import sys
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# Add the parent directory to the path so we can import our database
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from database import TutorAIDatabase
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.db_connection import get_db
 
 # Simple User class for Flask-Login
 class Tutor:
@@ -22,101 +22,84 @@ class Tutor:
     def get_id(self):
         return str(self.id)
 
-# Demo users - no database needed!
-DEMO_USERS = {
-    'admin': {
-        'id': 1,
-        'password': 'admin123',
-        'full_name': 'Administrator',
-        'email': 'admin@tutorai.demo'
-    },
-    'tutor1': {
-        'id': 2, 
-        'password': 'password',
-        'full_name': 'Demo Tutor 1',
-        'email': 'tutor1@tutorai.demo'
-    },
-    'demo': {
-        'id': 3,
-        'password': 'demo123', 
-        'full_name': 'Demo User',
-        'email': 'demo@tutorai.demo'
-    }
-}
-
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 def verify_tutor_login(username, password):
-    """Secure password verification using environment variables and hashing"""
-    # Use the configured database path from Flask config
-    db_path = current_app.config.get('DATABASE_PATH')
-    if not os.path.isabs(db_path):
-        # If path is relative, make it relative to the project root
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        db_path = os.path.join(project_root, db_path)
+    """Verify tutor login using database connection wrapper"""
     
-    db = TutorAIDatabase(db_path)
-    
-    try:
-        # First check if password_hash exists in database
-        db.cursor.execute("""
-            SELECT id, username, full_name, email, password_hash 
-            FROM tutors 
-            WHERE username = ? AND active = 1
-        """, (username,))
-        tutor_data = db.cursor.fetchone()
+    with get_db() as db:
+        try:
+            # Query for tutor
+            result = db.execute("""
+                SELECT id, username, full_name, email, password_hash 
+                FROM tutors 
+                WHERE username = ? AND active = true
+            """, (username,)).fetchone()
+            
+            if result:
+                # Handle both dict (PostgreSQL) and Row (SQLite) objects
+                if isinstance(result, dict):
+                    tutor_id = result['id']
+                    tutor_username = result['username']
+                    tutor_fullname = result['full_name']
+                    tutor_email = result['email']
+                    stored_hash = result.get('password_hash')
+                else:
+                    # SQLite Row object
+                    tutor_id = result['id']
+                    tutor_username = result['username']
+                    tutor_fullname = result['full_name']
+                    tutor_email = result['email']
+                    stored_hash = result['password_hash'] if 'password_hash' in result.keys() else None
+                
+                # Verify password
+                if stored_hash and stored_hash != 'temp_password_hash':
+                    if check_password_hash(stored_hash, password):
+                        # Update last login
+                        db.execute(
+                            "UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
+                            (tutor_id,)
+                        )
+                        return Tutor(tutor_id, tutor_username, tutor_fullname, tutor_email)
+                
+                # For initial setup only (when SETUP_MODE=true)
+                elif os.getenv('SETUP_MODE', 'false').lower() == 'true':
+                    # Check against environment variables for demo accounts
+                    env_passwords = {
+                        'admin': os.getenv('ADMIN_PASSWORD', 'admin123'),
+                        'tutor1': os.getenv('TUTOR1_PASSWORD', 'password'),
+                        'tutor2': os.getenv('TUTOR2_PASSWORD', 'password')
+                    }
+                    
+                    default_password = os.getenv('DEFAULT_TUTOR_PASSWORD', 'password')
+                    
+                    if (password == env_passwords.get(username) or 
+                        (username not in env_passwords and password == default_password)):
+                        
+                        # Hash and store the password for future use
+                        hashed = generate_password_hash(password)
+                        db.execute(
+                            "UPDATE tutors SET password_hash = ? WHERE id = ?",
+                            (hashed, tutor_id)
+                        )
+                        
+                        # Update last login
+                        db.execute(
+                            "UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
+                            (tutor_id,)
+                        )
+                        
+                        return Tutor(tutor_id, tutor_username, tutor_fullname, tutor_email)
         
-        if tutor_data:
-            stored_hash = tutor_data[4] if len(tutor_data) > 4 else None
-            
-            # If hash exists, use proper verification
-            if stored_hash and stored_hash != 'temp_password_hash':
-                if check_password_hash(stored_hash, password):
-                    # Update last login and return tutor
-                    db.cursor.execute(
-                        "UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?", 
-                        (tutor_data[0],)
-                    )
-                    db.connection.commit()
-                    return Tutor(tutor_data[0], tutor_data[1], tutor_data[2], tutor_data[3])
-            
-            # For initial setup only (when SETUP_MODE=true)
-            elif os.getenv('SETUP_MODE', 'false').lower() == 'true':
-                # Check against environment variables for demo accounts
-                env_passwords = {
-                    'admin': os.getenv('ADMIN_PASSWORD'),
-                    'tutor1': os.getenv('TUTOR1_PASSWORD'),
-                    'tutor2': os.getenv('TUTOR2_PASSWORD')
-                }
-                
-                default_password = os.getenv('DEFAULT_TUTOR_PASSWORD')
-                
-                if (password == env_passwords.get(username) or 
-                    (username not in env_passwords and password == default_password)):
-                    
-                    # Hash and store the password for future use
-                    hashed = generate_password_hash(password)
-                    db.cursor.execute(
-                        "UPDATE tutors SET password_hash = ? WHERE id = ?",
-                        (hashed, tutor_data[0])
-                    )
-                    db.connection.commit()
-                    
-                    # Update last login
-                    db.cursor.execute(
-                        "UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
-                        (tutor_data[0],)
-                    )
-                    db.connection.commit()
-                    
-                    return Tutor(tutor_data[0], tutor_data[1], tutor_data[2], tutor_data[3])
-    finally:
-        db.close()
+        except Exception as e:
+            print(f"Login error: {e}")
+            return None
     
     return None
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    """Login route"""
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
@@ -138,6 +121,7 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    """Logout route"""
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))

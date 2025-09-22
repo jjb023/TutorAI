@@ -1,4 +1,5 @@
 from utils.db_connection import get_db
+from werkzeug.security import generate_password_hash
 
 class TutorService:
     @staticmethod
@@ -17,13 +18,22 @@ class TutorService:
             return result.fetchone()
     
     @staticmethod
-    def create_tutor(username, full_name, email=None):
-        """Create a new tutor using your existing database structure."""
+    def create_tutor(username, full_name, email=None, password=None):
+        """Create a new tutor with proper password hashing."""
+        # If no password provided, use a default temporary password
+        if not password:
+            password = f"{username}123"  # Default pattern: username + 123
+        
+        # Hash the password
+        password_hash = generate_password_hash(password)
+        
         with get_db() as conn:
             conn.execute(
                 'INSERT INTO tutors (username, password_hash, full_name, email, active) VALUES (?, ?, ?, ?, ?)',
-                (username, 'temp_password_hash', full_name, email, True)
+                (username, password_hash, full_name, email, True)
             )
+            
+        return password  # Return the password so admin knows what it is
     
     @staticmethod
     def update_tutor(tutor_id, username, full_name, email=None):
@@ -33,6 +43,31 @@ class TutorService:
                 'UPDATE tutors SET username = ?, full_name = ?, email = ? WHERE id = ?',
                 (username, full_name, email, tutor_id)
             )
+    
+    @staticmethod
+    def update_tutor_password(tutor_id, new_password):
+        """Update a tutor's password with proper hashing."""
+        password_hash = generate_password_hash(new_password)
+        
+        with get_db() as conn:
+            conn.execute(
+                'UPDATE tutors SET password_hash = ? WHERE id = ?',
+                (password_hash, tutor_id)
+            )
+    
+    @staticmethod
+    def reset_tutor_password(tutor_id, username):
+        """Reset a tutor's password to default and return the new password."""
+        new_password = f"{username}123"
+        password_hash = generate_password_hash(new_password)
+        
+        with get_db() as conn:
+            conn.execute(
+                'UPDATE tutors SET password_hash = ? WHERE id = ?',
+                (password_hash, tutor_id)
+            )
+            
+        return new_password
     
     @staticmethod
     def delete_tutor(tutor_id):

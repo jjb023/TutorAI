@@ -492,6 +492,8 @@ Many tutors lack a structured system to:
 | 17.09.25 | *5* | Bug fixing |
 | 19.09.25 | 2 | Fixing passwords for admin | 
 | 22.09.25 | 3 | Proper passwords and hashing for tutors |
+| 23.09.25 | 3 | Admin and tutor switch with changing authority |
+
 
 
 

@@ -30,6 +30,31 @@
                    value="{{ tutor.email if tutor and tutor.email else '' }}">
         </div>
         
+        <div class="form-group">
+            <label for="role">Role</label>
+            <div class="role-toggle">
+                <div class="toggle-switch">
+                    <input type="radio" id="role_tutor" name="role" value="tutor" 
+                           {% if not tutor or (tutor.role if tutor.role is defined else 'tutor') == 'tutor' %}checked{% endif %}>
+                    <label for="role_tutor" class="toggle-option">
+                        <span class="toggle-icon">👨‍🏫</span>
+                        Tutor
+                    </label>
+                    
+                    <input type="radio" id="role_admin" name="role" value="admin" 
+                           {% if tutor and (tutor.role if tutor.role is defined else 'tutor') == 'admin' %}checked{% endif %}>
+                    <label for="role_admin" class="toggle-option">
+                        <span class="toggle-icon">👑</span>
+                        Admin
+                    </label>
+                </div>
+            </div>
+            <small style="color: #666;">
+                <strong>Tutor:</strong> Can manage students and topics<br>
+                <strong>Admin:</strong> Can manage tutors + everything tutors can do
+            </small>
+        </div>
+        
         {% if not tutor %}
         <div class="form-group">
             <label for="password">Password <span style="color: red;">*</span></label>

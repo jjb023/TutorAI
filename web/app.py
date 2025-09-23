@@ -5,17 +5,21 @@ import os
 
 # Simple User class for Flask-Login
 class Tutor:
-    def __init__(self, id, username, full_name, email):
+    def __init__(self, id, username, full_name, email, role='tutor'):
         self.id = id
         self.username = username
         self.full_name = full_name
         self.email = email
+        self.role = role
         self.is_authenticated = True
         self.is_active = True
         self.is_anonymous = False
 
     def get_id(self):
         return str(self.id)
+    
+    def is_admin(self):
+        return self.role == 'admin'
 
 def create_app(config_name=None):
     if config_name is None:
@@ -49,15 +53,17 @@ def create_app(config_name=None):
             from utils.db_connection import get_db
             with get_db() as db:
                 result = db.execute(
-                    "SELECT id, username, full_name, email FROM tutors WHERE id = ? AND active = true",
+                    "SELECT id, username, full_name, email, role FROM tutors WHERE id = ? AND active = true",
                     (user_id,)
                 ).fetchone()
                 
                 if result:
                     if isinstance(result, dict):
-                        return Tutor(result['id'], result['username'], result['full_name'], result['email'])
+                        return Tutor(result['id'], result['username'], result['full_name'], result['email'], result.get('role', 'tutor'))
                     else:
-                        return Tutor(result['id'], result['username'], result['full_name'], result['email'])
+                        # Handle Row object - assume order: id, username, full_name, email, role
+                        role = result[4] if len(result) > 4 else 'tutor'
+                        return Tutor(result[0], result[1], result[2], result[3], role)
         except Exception as e:
             print(f"Error loading user {user_id}: {e}")
         return None

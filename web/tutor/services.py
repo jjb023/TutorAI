@@ -18,8 +18,8 @@ class TutorService:
             return result.fetchone()
     
     @staticmethod
-    def create_tutor(username, full_name, email=None, password=None):
-        """Create a new tutor with proper password hashing."""
+    def create_tutor(username, full_name, email=None, password=None, role='tutor'):
+        """Create a new tutor with proper password hashing and role."""
         # If no password provided, use a default temporary password
         if not password:
             password = f"{username}123"  # Default pattern: username + 123
@@ -29,20 +29,26 @@ class TutorService:
         
         with get_db() as conn:
             conn.execute(
-                'INSERT INTO tutors (username, password_hash, full_name, email, active) VALUES (?, ?, ?, ?, ?)',
-                (username, password_hash, full_name, email, True)
+                'INSERT INTO tutors (username, password_hash, full_name, email, role, active) VALUES (?, ?, ?, ?, ?, ?)',
+                (username, password_hash, full_name, email, role, True)
             )
             
         return password  # Return the password so admin knows what it is
     
     @staticmethod
-    def update_tutor(tutor_id, username, full_name, email=None):
+    def update_tutor(tutor_id, username, full_name, email=None, role=None):
         """Update a tutor."""
         with get_db() as conn:
-            conn.execute(
-                'UPDATE tutors SET username = ?, full_name = ?, email = ? WHERE id = ?',
-                (username, full_name, email, tutor_id)
-            )
+            if role:
+                conn.execute(
+                    'UPDATE tutors SET username = ?, full_name = ?, email = ?, role = ? WHERE id = ?',
+                    (username, full_name, email, role, tutor_id)
+                )
+            else:
+                conn.execute(
+                    'UPDATE tutors SET username = ?, full_name = ?, email = ? WHERE id = ?',
+                    (username, full_name, email, tutor_id)
+                )
     
     @staticmethod
     def update_tutor_password(tutor_id, new_password):
@@ -87,3 +93,48 @@ class TutorService:
                 ORDER BY s.session_date DESC
             ''', (tutor_id,))
             return result.fetchall()
+    
+    @staticmethod
+    def get_tutors_by_role(role):
+        """Get all tutors with a specific role."""
+        with get_db() as conn:
+            result = conn.execute(
+                'SELECT * FROM tutors WHERE role = ? AND active = true ORDER BY full_name',
+                (role,)
+            )
+            return result.fetchall()
+    
+    @staticmethod
+    def get_admins():
+        """Get all admin users."""
+        return TutorService.get_tutors_by_role('admin')
+    
+    @staticmethod
+    def get_regular_tutors():
+        """Get all regular tutor users."""
+        return TutorService.get_tutors_by_role('tutor')
+    
+    @staticmethod
+    def is_admin(tutor_id):
+        """Check if a tutor has admin role."""
+        with get_db() as conn:
+            result = conn.execute(
+                'SELECT role FROM tutors WHERE id = ? AND active = true',
+                (tutor_id,)
+            ).fetchone()
+            
+            if result:
+                if isinstance(result, dict):
+                    return result['role'] == 'admin'
+                else:
+                    return result[0] == 'admin'
+            return False
+    
+    @staticmethod
+    def update_tutor_status(tutor_id, active_status):
+        """Update tutor active status (admin only function)."""
+        with get_db() as conn:
+            conn.execute(
+                'UPDATE tutors SET active = ? WHERE id = ?',
+                (active_status, tutor_id)
+            )

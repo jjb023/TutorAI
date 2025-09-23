@@ -491,6 +491,7 @@ Many tutors lack a structured system to:
 | 09.09.25 | *4* | Launch to railway |
 | 17.09.25 | *5* | Bug fixing |
 | 19.09.25 | 2 | Fixing passwords for admin | 
+| 22.09.25 | 3 | Proper passwords and hashing for tutors |
 
 
 

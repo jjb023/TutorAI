@@ -10,17 +10,21 @@ from utils.db_connection import get_db
 
 # Simple User class for Flask-Login
 class Tutor:
-    def __init__(self, id, username, full_name, email):
+    def __init__(self, id, username, full_name, email, role='tutor'):
         self.id = id
         self.username = username
         self.full_name = full_name
         self.email = email
+        self.role = role
         self.is_authenticated = True
         self.is_active = True
         self.is_anonymous = False
 
     def get_id(self):
         return str(self.id)
+    
+    def is_admin(self):
+        return self.role == 'admin'
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -31,7 +35,7 @@ def verify_tutor_login(username, password):
         try:
             # Query for tutor
             result = db.execute("""
-                SELECT id, username, full_name, email, password_hash 
+                SELECT id, username, full_name, email, password_hash, role 
                 FROM tutors 
                 WHERE username = ? AND active = true
             """, (username,)).fetchone()
@@ -43,6 +47,7 @@ def verify_tutor_login(username, password):
                     tutor_username = result['username']
                     tutor_fullname = result['full_name']
                     tutor_email = result['email']
+                    tutor_role = result.get('role', 'tutor')
                     stored_hash = result.get('password_hash')
                 else:
                     # SQLite Row object
@@ -50,6 +55,7 @@ def verify_tutor_login(username, password):
                     tutor_username = result['username']
                     tutor_fullname = result['full_name']
                     tutor_email = result['email']
+                    tutor_role = result['role'] if 'role' in result.keys() else 'tutor'
                     stored_hash = result['password_hash'] if 'password_hash' in result.keys() else None
                 
                 # Verify password
@@ -60,7 +66,7 @@ def verify_tutor_login(username, password):
                             "UPDATE tutors SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
                             (tutor_id,)
                         )
-                        return Tutor(tutor_id, tutor_username, tutor_fullname, tutor_email)
+                        return Tutor(tutor_id, tutor_username, tutor_fullname, tutor_email, tutor_role)
                 
                 # For initial setup only (when SETUP_MODE=true)
                 elif os.getenv('SETUP_MODE', 'false').lower() == 'true':
@@ -89,7 +95,7 @@ def verify_tutor_login(username, password):
                             (tutor_id,)
                         )
                         
-                        return Tutor(tutor_id, tutor_username, tutor_fullname, tutor_email)
+                        return Tutor(tutor_id, tutor_username, tutor_fullname, tutor_email, tutor_role)
         
         except Exception as e:
             print(f"Login error: {e}")

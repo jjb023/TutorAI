@@ -1,5 +1,5 @@
 # web/worksheet/services.py
-from utils.database import get_db_connection
+from utils.db_connection import get_db
 import json
 import random
 from datetime import datetime
@@ -10,18 +10,24 @@ class QuestionService:
                        time_estimate, space_required, tutor_id, 
                        question_type=None, answer=None, is_template=False, template_params=None):
         """Add a new question to the bank with optional template support."""
-        with get_db_connection() as conn:
-            cursor = conn.execute('''
+        with get_db() as db:
+            db.execute('''
                 INSERT INTO questions 
                 (subtopic_id, question_text, answer, difficulty_level, 
                  time_estimate_minutes, space_required, question_type, 
                  created_by_tutor_id, active, is_template, template_params)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (subtopic_id, question_text, answer, difficulty_level, 
                   time_estimate, space_required, question_type, tutor_id, 
-                  is_template, template_params))
-            conn.commit()
-            return cursor.lastrowid
+                  True, is_template, template_params))
+            
+            # Get the inserted ID
+            result = db.execute("SELECT id FROM questions WHERE subtopic_id = ? AND question_text = ? ORDER BY id DESC LIMIT 1", 
+                              (subtopic_id, question_text)).fetchone()
+            if isinstance(result, dict):
+                return result['id']
+            else:
+                return result[0] if result else None
 
     @staticmethod
     def parse_template_variables(question_text):
@@ -95,28 +101,35 @@ class QuestionService:
     @staticmethod
     def get_questions_by_subtopic(subtopic_id, difficulty_level=None):
         """Get questions for a subtopic, optionally filtered by difficulty."""
-        with get_db_connection() as conn:
+        with get_db() as db:
             if difficulty_level:
-                questions = conn.execute('''
+                result = db.execute('''
                     SELECT * FROM questions 
-                    WHERE subtopic_id = ? AND difficulty_level = ? AND active = 1
+                    WHERE subtopic_id = ? AND difficulty_level = ? AND active = true
                     ORDER BY created_date DESC
-                ''', (subtopic_id, difficulty_level)).fetchall()
+                ''', (subtopic_id, difficulty_level))
             else:
-                questions = conn.execute('''
+                result = db.execute('''
                     SELECT * FROM questions 
-                    WHERE subtopic_id = ? AND active = 1
+                    WHERE subtopic_id = ? AND active = true
                     ORDER BY difficulty_level, created_date DESC
-                ''', (subtopic_id,)).fetchall()
+                ''', (subtopic_id,))
             
-            return [dict(q) for q in questions]
+            questions = result.fetchall()
+            
+            # Convert to list of dictionaries
+            if questions and isinstance(questions[0], dict):
+                return questions
+            else:
+                # Handle Row objects - convert to dict
+                return [dict(q) for q in questions]
     
     @staticmethod
     def update_question(question_id, question_text=None, answer=None,
                        difficulty_level=None, time_estimate=None, 
                        space_required=None, question_type=None):
         """Update an existing question."""
-        with get_db_connection() as conn:
+        with get_db() as db:
             updates = []
             params = []
             
@@ -142,38 +155,41 @@ class QuestionService:
             if updates:
                 params.append(question_id)
                 query = f"UPDATE questions SET {', '.join(updates)} WHERE id = ?"
-                conn.execute(query, params)
-                conn.commit()
+                db.execute(query, params)
     
     @staticmethod
     def get_question(question_id):
         """Get a single question by ID."""
-        with get_db_connection() as conn:
-            question = conn.execute('''
+        with get_db() as db:
+            result = db.execute('''
                 SELECT * FROM questions WHERE id = ?
-            ''', (question_id,)).fetchone()
-            return dict(question) if question else None
+            ''', (question_id,))
+            question = result.fetchone()
+            
+            if question:
+                return dict(question) if isinstance(question, dict) else dict(question)
+            return None
     
     @staticmethod
     def delete_question(question_id):
         """Soft delete a question (mark as inactive)."""
-        with get_db_connection() as conn:
-            conn.execute('UPDATE questions SET active = 0 WHERE id = ?', (question_id,))
-            conn.commit()
+        with get_db() as db:
+            db.execute('UPDATE questions SET active = false WHERE id = ?', (question_id,))
     
     @staticmethod
     def get_question_stats(subtopic_id):
         """Get statistics about questions for a subtopic."""
-        with get_db_connection() as conn:
-            stats = conn.execute('''
+        with get_db() as db:
+            result_query = db.execute('''
                 SELECT 
                     difficulty_level,
                     COUNT(*) as count,
                     AVG(time_estimate_minutes) as avg_time
                 FROM questions 
-                WHERE subtopic_id = ? AND active = 1
+                WHERE subtopic_id = ? AND active = true
                 GROUP BY difficulty_level
-            ''', (subtopic_id,)).fetchall()
+            ''', (subtopic_id,))
+            stats = result_query.fetchall()
             
             # Convert to dictionary format with default values
             result = {
@@ -183,12 +199,21 @@ class QuestionService:
             }
             
             for stat in stats:
-                if stat['difficulty_level'] == 1:
-                    result['easy'] = {'count': stat['count'], 'avg_time': stat['avg_time'] or 0}
-                elif stat['difficulty_level'] == 2:
-                    result['medium'] = {'count': stat['count'], 'avg_time': stat['avg_time'] or 0}
-                elif stat['difficulty_level'] == 3:
-                    result['hard'] = {'count': stat['count'], 'avg_time': stat['avg_time'] or 0}
+                if isinstance(stat, dict):
+                    difficulty = stat['difficulty_level']
+                    count = stat['count']
+                    avg_time = stat['avg_time']
+                else:
+                    difficulty = stat[0]
+                    count = stat[1]
+                    avg_time = stat[2]
+                
+                if difficulty == 1:
+                    result['easy'] = {'count': count, 'avg_time': avg_time or 0}
+                elif difficulty == 2:
+                    result['medium'] = {'count': count, 'avg_time': avg_time or 0}
+                elif difficulty == 3:
+                    result['hard'] = {'count': count, 'avg_time': avg_time or 0}
             
             return result
 
@@ -197,17 +222,24 @@ class WorksheetService:
     @staticmethod
     def get_recommended_difficulty(student_id, subtopic_id):
         """Recommend worksheet difficulty based on student's current mastery."""
-        with get_db_connection() as conn:
+        with get_db() as db:
             # Get student's current mastery level
-            progress = conn.execute('''
+            result = db.execute('''
                 SELECT mastery_level FROM subtopic_progress
                 WHERE student_id = ? AND subtopic_id = ?
-            ''', (student_id, subtopic_id)).fetchone()
+            ''', (student_id, subtopic_id))
+            progress = result.fetchone()
             
-            if not progress or progress['mastery_level'] == 0:
+            if not progress:
                 return 'easy', {'easy': 70, 'medium': 25, 'hard': 5}
             
-            mastery = progress['mastery_level']
+            if isinstance(progress, dict):
+                mastery = progress['mastery_level']
+            else:
+                mastery = progress[0]
+            
+            if not mastery or mastery == 0:
+                return 'easy', {'easy': 70, 'medium': 25, 'hard': 5}
             
             if mastery <= 3:
                 return 'easy', {'easy': 70, 'medium': 25, 'hard': 5}
@@ -223,19 +255,34 @@ class WorksheetService:
                           difficulty_distribution=None, total_questions=20,
                           title=None):
         """Generate a worksheet with smart question selection."""
-        with get_db_connection() as conn:
+        with get_db() as db:
             # Get student and subtopic info
-            student = conn.execute('SELECT name FROM students WHERE id = ?', 
-                                 (student_id,)).fetchone()
-            subtopic = conn.execute('''
+            student_result = db.execute('SELECT name FROM students WHERE id = ?', (student_id,))
+            student = student_result.fetchone()
+            
+            subtopic_result = db.execute('''
                 SELECT s.subtopic_name, mt.topic_name 
                 FROM subtopics s
                 JOIN main_topics mt ON s.main_topic_id = mt.id
                 WHERE s.id = ?
-            ''', (subtopic_id,)).fetchone()
+            ''', (subtopic_id,))
+            subtopic = subtopic_result.fetchone()
             
             if not student or not subtopic:
                 raise ValueError("Invalid student or subtopic")
+            
+            # Convert results to consistent format
+            if isinstance(student, dict):
+                student_name = student['name']
+            else:
+                student_name = student[0]
+            
+            if isinstance(subtopic, dict):
+                topic_name = subtopic['topic_name']
+                subtopic_name = subtopic['subtopic_name']
+            else:
+                subtopic_name = subtopic[0]
+                topic_name = subtopic[1]
             
             # Get recommended difficulty if not provided
             if not difficulty_distribution:
@@ -276,16 +323,27 @@ class WorksheetService:
             
             # Create worksheet record
             if not title:
-                title = f"{subtopic['topic_name']} - {subtopic['subtopic_name']} Practice"
+                title = f"{topic_name} - {subtopic_name} Practice"
             
-            cursor = conn.execute('''
+            db.execute('''
                 INSERT INTO worksheets 
                 (student_id, subtopic_id, title, difficulty_level, 
                  generated_by_tutor_id, status)
-                VALUES (?, ?, ?, ?, ?, 'draft')
-            ''', (student_id, subtopic_id, title, 'mixed', tutor_id))
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (student_id, subtopic_id, title, 'mixed', tutor_id, 'draft'))
             
-            worksheet_id = cursor.lastrowid
+            # Get the inserted worksheet ID
+            worksheet_result = db.execute('''
+                SELECT id FROM worksheets 
+                WHERE student_id = ? AND subtopic_id = ? AND title = ?
+                ORDER BY id DESC LIMIT 1
+            ''', (student_id, subtopic_id, title))
+            worksheet_row = worksheet_result.fetchone()
+            
+            if isinstance(worksheet_row, dict):
+                worksheet_id = worksheet_row['id']
+            else:
+                worksheet_id = worksheet_row[0]
             
             # Add questions to worksheet
             for i, question in enumerate(selected_questions, 1):
@@ -297,42 +355,41 @@ class WorksheetService:
                     )
                     
                     # Save with generated text
-                    conn.execute('''
+                    db.execute('''
                         INSERT INTO worksheet_questions 
                         (worksheet_id, question_id, question_order, space_allocated, custom_question_text)
                         VALUES (?, ?, ?, ?, ?)
                     ''', (worksheet_id, question['id'], i, question['space_required'], generated_text))
                 else:
                     # Regular static question
-                    conn.execute('''
+                    db.execute('''
                         INSERT INTO worksheet_questions 
                         (worksheet_id, question_id, question_order, space_allocated)
                         VALUES (?, ?, ?, ?)
                     ''', (worksheet_id, question['id'], i, question['space_required']))
-            
-            conn.commit()
             
             return worksheet_id
     
     @staticmethod
     def get_worksheet(worksheet_id):
         """Get worksheet with all questions."""
-        with get_db_connection() as conn:
+        with get_db() as db:
             # Get worksheet info
-            worksheet = conn.execute('''
+            worksheet_result = db.execute('''
                 SELECT w.*, s.name as student_name, sub.subtopic_name, mt.topic_name
                 FROM worksheets w
                 JOIN students s ON w.student_id = s.id
                 JOIN subtopics sub ON w.subtopic_id = sub.id
                 JOIN main_topics mt ON sub.main_topic_id = mt.id
                 WHERE w.id = ?
-            ''', (worksheet_id,)).fetchone()
+            ''', (worksheet_id,))
+            worksheet = worksheet_result.fetchone()
             
             if not worksheet:
                 return None
             
             # Get questions
-            questions = conn.execute('''
+            questions_result = db.execute('''
                 SELECT 
                     wq.*,
                     q.question_text as original_text,
@@ -344,18 +401,29 @@ class WorksheetService:
                 JOIN questions q ON wq.question_id = q.id
                 WHERE wq.worksheet_id = ?
                 ORDER BY wq.question_order
-            ''', (worksheet_id,)).fetchall()
+            ''', (worksheet_id,))
+            questions = questions_result.fetchall()
+            
+            # Convert to consistent format
+            worksheet_dict = dict(worksheet) if isinstance(worksheet, dict) else dict(worksheet)
+            questions_list = []
+            
+            for q in questions:
+                if isinstance(q, dict):
+                    questions_list.append(q)
+                else:
+                    questions_list.append(dict(q))
             
             return {
-                'worksheet': dict(worksheet),
-                'questions': [dict(q) for q in questions]
+                'worksheet': worksheet_dict,
+                'questions': questions_list
             }
     
     @staticmethod
     def update_worksheet_question(worksheet_id, question_order, new_text=None, 
                                  new_space=None):
         """Update a specific question in a worksheet."""
-        with get_db_connection() as conn:
+        with get_db() as db:
             updates = []
             params = []
             
@@ -371,16 +439,14 @@ class WorksheetService:
                 query = f"""UPDATE worksheet_questions 
                            SET {', '.join(updates)} 
                            WHERE worksheet_id = ? AND question_order = ?"""
-                conn.execute(query, params)
-                conn.commit()
+                db.execute(query, params)
     
     @staticmethod
     def finalize_worksheet(worksheet_id, pdf_path):
         """Mark worksheet as finalized with PDF path."""
-        with get_db_connection() as conn:
-            conn.execute('''
+        with get_db() as db:
+            db.execute('''
                 UPDATE worksheets 
-                SET status = 'finalized', pdf_path = ?
+                SET status = ?, pdf_path = ?
                 WHERE id = ?
-            ''', (pdf_path, worksheet_id))
-            conn.commit()
+            ''', ('finalized', pdf_path, worksheet_id))

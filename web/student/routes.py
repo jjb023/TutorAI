@@ -63,18 +63,25 @@ def student_detail(student_id):
             flash('Student not found!', 'error')
             return redirect(url_for('student.list_students'))
         
-        # Get comprehensive progress data
-        progress_data = SessionService.get_student_progress_summary(student_id)
+        # Get comprehensive progress data  
+        progress_data = StudentService.get_student_progress_summary(student_id)
         
-        # Get recent sessions with progress details
-        recent_sessions = SessionService.get_recent_sessions_with_progress(student_id)
+        # Get recent sessions with progress details (fallback to empty list if SessionService fails)
+        try:
+            recent_sessions = SessionService.get_recent_sessions_with_progress(student_id)
+        except Exception:
+            recent_sessions = []
         
-        # Calculate overall statistics (handle None values)
+        # Handle case where progress_data might be None or missing topic_summaries
+        if not progress_data or 'topic_summaries' not in progress_data:
+            progress_data = {'topic_summaries': [], 'detailed_progress': [], 'weak_areas': [], 'ready_to_advance': []}
+        
+        # Calculate overall statistics (handle None values and empty lists)
         total_subtopics = sum(topic['total_subtopics'] or 0 for topic in progress_data['topic_summaries'])
         topics_assessed = sum(topic['assessed_subtopics'] or 0 for topic in progress_data['topic_summaries'])
         
         overall_progress = 0
-        if len(progress_data['topic_summaries']) > 0:
+        if progress_data['topic_summaries'] and len(progress_data['topic_summaries']) > 0:
             overall_progress = sum(float(topic['completion_percentage'] or 0) for topic in progress_data['topic_summaries']) / len(progress_data['topic_summaries'])
         
         # Get session count
@@ -83,11 +90,11 @@ def student_detail(student_id):
         
         return render_template('student/detail.html', 
                              student=student,
-                             topic_summaries=progress_data['topic_summaries'],
-                             detailed_progress=progress_data['detailed_progress'],
-                             weak_areas=progress_data['weak_areas'],
-                             ready_to_advance=progress_data['ready_to_advance'],
-                             recent_sessions=recent_sessions,
+                             topic_summaries=progress_data.get('topic_summaries', []),
+                             detailed_progress=progress_data.get('detailed_progress', []),
+                             weak_areas=progress_data.get('weak_areas', []),
+                             ready_to_advance=progress_data.get('ready_to_advance', []),
+                             recent_sessions=recent_sessions or [],
                              session_count=session_count,
                              last_session_date=last_session_date,
                              topics_assessed=topics_assessed,
@@ -259,7 +266,7 @@ def progress_chart(student_id):
     
     try:
         # Get progress data for visualization
-        progress_data = SessionService.get_student_progress_summary(student_id)
+        progress_data = StudentService.get_student_progress_summary(student_id)
         
         return render_template('student/progress_chart.html',
                              student=student,

@@ -4,6 +4,7 @@ from flask_login import login_required
 from .services import StudentService
 from session.services import SessionService
 from utils.validators import StudentValidator, ValidationError, sanitize_html
+from tutor.services import admin_required
 
 student_bp = Blueprint('student', __name__, url_prefix='/students')
 
@@ -97,6 +98,7 @@ def student_detail(student_id):
 
 @student_bp.route('/add', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def add_student():
     """Add a new student with validation."""
     if request.method == 'POST':
@@ -152,6 +154,7 @@ def add_student():
 
 @student_bp.route('/<int:student_id>/edit', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def edit_student(student_id):
     """Edit student details with validation."""
     # Validate student_id
@@ -211,6 +214,7 @@ def edit_student(student_id):
 
 @student_bp.route('/<int:student_id>/delete', methods=['POST'])
 @login_required
+@admin_required
 def delete_student(student_id):
     """Delete student and all related data."""
     # Validate student_id

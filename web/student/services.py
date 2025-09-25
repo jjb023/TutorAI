@@ -77,7 +77,10 @@ class StudentService:
                     COUNT(s.id) as total_subtopics,
                     COUNT(sp.id) as assessed_subtopics,
                     ROUND(AVG(CASE WHEN sp.mastery_level IS NOT NULL THEN sp.mastery_level ELSE 0 END), 1) as avg_mastery,
-                    ROUND((COUNT(sp.id) * 100.0 / COUNT(s.id)), 1) as completion_percentage
+                    ROUND(CASE 
+                        WHEN COUNT(s.id) > 0 THEN (COUNT(sp.id) * 100.0 / COUNT(s.id))
+                        ELSE 0.0 
+                    END, 1) as completion_percentage
                 FROM main_topics mt
                 LEFT JOIN subtopics s ON mt.id = s.main_topic_id
                 LEFT JOIN subtopic_progress sp ON s.id = sp.subtopic_id AND sp.student_id = ?

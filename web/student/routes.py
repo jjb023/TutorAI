@@ -25,9 +25,11 @@ def list_students():
             topics_assessed = 0
             
             for topic in progress_data['topic_summaries']:
-                if topic['assessed_subtopics'] > 0:
-                    topics_assessed += topic['assessed_subtopics']
-                    overall_progress += topic['completion_percentage']
+                assessed_subtopics = topic['assessed_subtopics'] or 0
+                completion_percentage = float(topic['completion_percentage'] or 0)
+                if assessed_subtopics > 0:
+                    topics_assessed += assessed_subtopics
+                    overall_progress += completion_percentage
             
             if len(progress_data['topic_summaries']) > 0:
                 overall_progress = overall_progress / len(progress_data['topic_summaries'])
@@ -67,17 +69,17 @@ def student_detail(student_id):
         # Get recent sessions with progress details
         recent_sessions = SessionService.get_recent_sessions_with_progress(student_id)
         
-        # Calculate overall statistics
-        total_subtopics = sum(topic['total_subtopics'] for topic in progress_data['topic_summaries'])
-        topics_assessed = sum(topic['assessed_subtopics'] for topic in progress_data['topic_summaries'])
+        # Calculate overall statistics (handle None values)
+        total_subtopics = sum(topic['total_subtopics'] or 0 for topic in progress_data['topic_summaries'])
+        topics_assessed = sum(topic['assessed_subtopics'] or 0 for topic in progress_data['topic_summaries'])
         
         overall_progress = 0
         if len(progress_data['topic_summaries']) > 0:
-            overall_progress = sum(topic['completion_percentage'] for topic in progress_data['topic_summaries']) / len(progress_data['topic_summaries'])
+            overall_progress = sum(float(topic['completion_percentage'] or 0) for topic in progress_data['topic_summaries']) / len(progress_data['topic_summaries'])
         
         # Get session count
         session_count = StudentService.get_session_count(student_id)
-        last_session_date = student['last_session_date']
+        last_session_date = student.get('last_session_date')
         
         return render_template('student/detail.html', 
                              student=student,

@@ -98,7 +98,6 @@ def student_detail(student_id):
 
 @student_bp.route('/add', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def add_student():
     """Add a new student with validation."""
     if request.method == 'POST':
@@ -154,7 +153,6 @@ def add_student():
 
 @student_bp.route('/<int:student_id>/edit', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def edit_student(student_id):
     """Edit student details with validation."""
     # Validate student_id
@@ -214,7 +212,6 @@ def edit_student(student_id):
 
 @student_bp.route('/<int:student_id>/delete', methods=['POST'])
 @login_required
-@admin_required
 def delete_student(student_id):
     """Delete student and all related data."""
     # Validate student_id

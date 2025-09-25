@@ -64,13 +64,10 @@ def student_detail(student_id):
             return redirect(url_for('student.list_students'))
         
         # Get comprehensive progress data  
-        progress_data = StudentService.get_student_progress_summary(student_id)
+        progress_data = SessionService.get_student_progress_summary(student_id)
         
-        # Get recent sessions with progress details (fallback to empty list if SessionService fails)
-        try:
-            recent_sessions = SessionService.get_recent_sessions_with_progress(student_id)
-        except Exception:
-            recent_sessions = []
+        # Get recent sessions with progress details
+        recent_sessions = SessionService.get_recent_sessions_with_progress(student_id)
         
         # Handle case where progress_data might be None or missing topic_summaries
         if not progress_data or 'topic_summaries' not in progress_data:
@@ -266,7 +263,7 @@ def progress_chart(student_id):
     
     try:
         # Get progress data for visualization
-        progress_data = StudentService.get_student_progress_summary(student_id)
+        progress_data = SessionService.get_student_progress_summary(student_id)
         
         return render_template('student/progress_chart.html',
                              student=student,

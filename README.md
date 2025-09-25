@@ -493,6 +493,9 @@ Many tutors lack a structured system to:
 | 19.09.25 | 2 | Fixing passwords for admin | 
 | 22.09.25 | 3 | Proper passwords and hashing for tutors |
 | 23.09.25 | 3 | Admin and tutor switch with changing authority |
+| 24.09.25 | 2 | Postgre migrations |
+| 25.09.25 | 3 | Student progress postgre migrations |
+
 
 
 
